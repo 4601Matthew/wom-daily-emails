@@ -100,28 +100,103 @@ button:hover {
 .small { font-size: 12px; padding: 6px 10px; }
 
 .preview {
-  background: #f8f9fa;
-  padding: 24px;
+  background: #f4f4f4;
+  padding: 20px;
   border-radius: 8px;
-  border: 2px solid #e0e0e0;
   min-height: 400px;
 }
 
-.email-box {
-  border: 3px solid #007A33;
-  border-radius: 8px;
-  padding: 20px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+.email-wrapper {
+  max-width: 540px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.email-header {
+  background-color: #007A33;
+  color: #ffffff;
+  text-align: center;
+  padding: 24px 18px 20px;
+  border-bottom: 3px solid #004d20;
+}
+
+.email-header h1 {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.email-content {
+  padding: 30px 32px;
+  line-height: 1.65;
+  word-wrap: break-word;
+}
+
+.email-content h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #000000;
+  margin-top: 30px;
+  margin-bottom: 8px;
+  border-left: 4px solid #007A33;
+  padding-left: 8px;
+}
+
+.email-content p {
+  margin: 6px 0 16px;
+  font-size: 15px;
+  color: #333333;
+}
+
+.email-content ul {
+  margin: 8px 0 16px;
+  padding-left: 20px;
+}
+
+.email-content li {
+  margin: 4px 0;
+  font-size: 15px;
+  color: #333333;
 }
 
 .manager-box {
-  border: 3px solid #007A33;
-  border-left: 6px solid #007A33;
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 16px;
-  background: #f0f8f4;
+  background-color: #f9f9f9;
+  border: 1px solid #e5e5e5;
+  border-left: 4px solid #007A33;
+  border-radius: 6px;
+  padding: 12px 15px;
+  margin-top: 10px;
+}
+
+.manager-box strong {
+  display: block;
+  font-size: 14px;
+  color: #000000;
+  margin-bottom: 4px;
+}
+
+.manager-box ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.manager-box li {
+  font-size: 14px;
+  color: #333333;
+  margin: 2px 0;
+}
+
+.email-footer {
+  background-color: #fafafa;
+  color: #555555;
+  font-size: 13px;
+  text-align: center;
+  padding: 16px 20px;
+  border-top: 1px solid #e5e5e5;
 }
 
 .row { 
@@ -169,19 +244,65 @@ button:hover {
 
 .modal-content h3 {
   margin-top: 0;
+  margin-bottom: 16px;
   color: #007A33;
   border-bottom: 2px solid #007A33;
   padding-bottom: 8px;
 }
 
+.modal-content h4 {
+  margin-top: 16px;
+  margin-bottom: 12px;
+  color: #333;
+  font-size: 16px;
+}
+
 .tab-buttons {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
 .hidden { display: none; }
+
+.settings-section {
+  margin-top: 16px;
+}
+
+.settings-section:first-child {
+  margin-top: 0;
+}
+
+.manager-item {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  margin-top: 12px;
+}
+
+.manager-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.manager-fields.full-width {
+  grid-template-columns: 1fr;
+}
+
+.planned-closure-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.planned-closure-fields.full-width {
+  grid-template-columns: 1fr;
+}
 
 .shift-selector {
   display: grid;
@@ -195,18 +316,22 @@ button:hover {
 
 .closure-item {
   background: #f8f9fa;
-  padding: 12px;
+  padding: 16px;
   border-radius: 6px;
   border: 1px solid #ddd;
+  margin-top: 12px;
+}
+
+.closure-item:first-child {
+  margin-top: 0;
+}
+
+.planned-closure-fields {
   margin-top: 8px;
 }
 
-.closure-item .row {
-  margin-top: 8px;
-}
-
-.closure-item input {
-  margin-top: 4px;
+.planned-closure-fields:first-child {
+  margin-top: 0;
 }
 
 @media(max-width: 1000px){
@@ -292,26 +417,26 @@ button:hover {
     </div>
 
     <!-- CALLSIGNS -->
-    <div id="callsignTab">
+    <div id="callsignTab" class="settings-section">
       <h4>Crewing Callsigns</h4>
-      <div id="callsignList"></div>
-      <button class="small primary" onclick="addCallsign()">➕ Add Callsign</button>
+      <div id="callsignList" style="margin-top: 12px;"></div>
+      <button class="small primary" onclick="addCallsign()" style="margin-top: 12px;">➕ Add Callsign</button>
     </div>
 
     <!-- TASKS -->
-    <div id="tasksTab" class="hidden">
+    <div id="tasksTab" class="hidden settings-section">
       <h4>Tasks by Day</h4>
-      <label>Select Day</label>
+      <label style="margin-top: 12px;">Select Day</label>
       <select id="taskDay"></select>
       <div id="taskList" style="margin-top: 12px;"></div>
-      <button class="small primary" onclick="addTask()" style="margin-top: 8px;">➕ Add Task</button>
+      <button class="small primary" onclick="addTask()" style="margin-top: 12px;">➕ Add Task</button>
     </div>
 
     <!-- DUTY MANAGERS -->
-    <div id="managersTab" class="hidden">
+    <div id="managersTab" class="hidden settings-section">
       <h4>Duty Managers</h4>
-      <div id="managerList"></div>
-      <button class="small primary" onclick="addManager()">➕ Add Manager</button>
+      <div id="managerList" style="margin-top: 12px;"></div>
+      <button class="small primary" onclick="addManager()" style="margin-top: 12px;">➕ Add Manager</button>
     </div>
 
   </div>
@@ -321,9 +446,11 @@ button:hover {
 <div class="modal" id="plannedClosuresModal">
   <div class="modal-content">
     <h3>📅 Planned Road Closures</h3>
-    <div id="plannedClosuresList"></div>
-    <button class="small primary" onclick="addPlannedClosure()">➕ Add Planned Closure</button>
-    <button class="danger small" onclick="closePlannedClosures()" style="margin-left: 8px;">❌ Close</button>
+    <div id="plannedClosuresList" style="margin-top: 16px;"></div>
+    <div style="margin-top: 16px; display: flex; gap: 8px;">
+      <button class="small primary" onclick="addPlannedClosure()">➕ Add Planned Closure</button>
+      <button class="danger small" onclick="closePlannedClosures()">❌ Close</button>
+    </div>
   </div>
 </div>
 
@@ -383,7 +510,7 @@ function renderSettings(){
   callsignList.innerHTML = "";
   callsigns.forEach((c,i)=>{
     callsignList.innerHTML += `
-      <div class="row">
+      <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'};">
         <input value="${c}" onchange="callsigns[${i}]=this.value;saveSettings()">
         <button class="danger small" onclick="callsigns.splice(${i},1);saveSettings()">➖</button>
       </div>`;
@@ -405,7 +532,7 @@ function renderTasks(){
   
   dayTasks[taskDay.value].forEach((t,i)=>{
     taskList.innerHTML += `
-      <div class="row">
+      <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'};">
         <input value="${t}" onchange="dayTasks['${taskDay.value}'][${i}]=this.value;saveSettings()">
         <button class="danger small" onclick="dayTasks['${taskDay.value}'].splice(${i},1);saveSettings()">➖</button>
       </div>`;
@@ -431,20 +558,18 @@ function renderManagers(){
   managerList.innerHTML = "";
   dutyManagers.forEach((m,i)=>{
     managerList.innerHTML += `
-      <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-top: 8px;">
-        <div class="row">
+      <div class="manager-item">
+        <div class="manager-fields">
           <input placeholder="Name" value="${m.name}" onchange="dutyManagers[${i}].name=this.value;saveSettings()">
-        </div>
-        <div class="row">
           <input placeholder="Callsign" value="${m.callsign}" onchange="dutyManagers[${i}].callsign=this.value;saveSettings()">
         </div>
-        <div class="row">
+        <div class="manager-fields">
           <input placeholder="Number" value="${m.number}" onchange="dutyManagers[${i}].number=this.value;saveSettings()">
-        </div>
-        <div class="row">
           <input placeholder="Email" value="${m.email}" onchange="dutyManagers[${i}].email=this.value;saveSettings()">
         </div>
-        <button class="danger small" onclick="dutyManagers.splice(${i},1);saveSettings()">➖ Remove</button>
+        <div style="margin-top: 8px;">
+          <button class="danger small" onclick="dutyManagers.splice(${i},1);saveSettings()">➖ Remove</button>
+        </div>
       </div>`;
   });
 }
@@ -512,30 +637,28 @@ function renderPlannedClosures(){
     const endDate = closure.endDate || "";
     plannedClosuresList.innerHTML += `
       <div class="closure-item">
-        <div class="row">
+        <div class="planned-closure-fields">
           <input type="date" placeholder="Start Date" value="${startDate}" onchange="plannedClosures[${i}].startDate=this.value;savePlannedClosures()">
           <input type="date" placeholder="End Date" value="${endDate}" onchange="plannedClosures[${i}].endDate=this.value;savePlannedClosures()">
         </div>
-        <div class="row">
+        <div class="planned-closure-fields">
           <select onchange="plannedClosures[${i}].shiftType=this.value;savePlannedClosures()">
             <option value="Day" ${closure.shiftType==="Day"?"selected":""}>Day Shift</option>
             <option value="Night" ${closure.shiftType==="Night"?"selected":""}>Night Shift</option>
             <option value="All" ${closure.shiftType==="All"?"selected":""}>All Shifts</option>
           </select>
-        </div>
-        <div class="row">
           <input placeholder="Road name" value="${closure.roadName || ""}" onchange="plannedClosures[${i}].roadName=this.value;savePlannedClosures()">
         </div>
-        <div class="row">
+        <div class="planned-closure-fields">
           <input placeholder="Type" value="${closure.type || ""}" onchange="plannedClosures[${i}].type=this.value;savePlannedClosures()">
-        </div>
-        <div class="row">
           <input placeholder="Closure info" value="${closure.closureInfo || ""}" onchange="plannedClosures[${i}].closureInfo=this.value;savePlannedClosures()">
         </div>
-        <div class="row">
+        <div class="planned-closure-fields full-width">
           <input placeholder="Detour" value="${closure.detour || ""}" onchange="plannedClosures[${i}].detour=this.value;savePlannedClosures()">
         </div>
-        <button class="danger small" onclick="plannedClosures.splice(${i},1);savePlannedClosures()">➖ Remove</button>
+        <div style="margin-top: 8px;">
+          <button class="danger small" onclick="plannedClosures.splice(${i},1);savePlannedClosures()">➖ Remove</button>
+        </div>
       </div>`;
   });
 }
@@ -675,53 +798,223 @@ function render(){
   // Other
   const otherText = other.value.trim() || "Nothing extra to report.";
   
+  const shiftLabel = shift.value === "Night" ? "Night" : "Day";
+  const dateStr = new Date().toLocaleDateString("en-NZ", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  
   preview.innerHTML = `
-    <div class="email-box">
-      <p><strong>${greeting}</strong><br>${welcomeText}</p>
-      ${greetingComment ? `<p>${greetingComment}</p>` : ""}
-      
-      <strong>✅ Tasks</strong>
-      <ul>${taskListFinal.map(t => `<li>${t}</li>`).join("")}</ul>
-      
-      <strong>🚑 Crewing</strong>
-      ${crewingHTML}
-      
-      <strong>🛣️ Road Closures</strong>
-      ${closureLines.length 
-        ? `<ul>${closureLines.map(c => `<li>${c}</li>`).join("")}</ul>`
-        : `<ul><li>No road closures / major roadworks reported for this shift</li></ul>`
-      }
-      
-      <div class="manager-box">
-        <strong>👤 Duty Manager</strong>
-        <ul>
-          <li>Name: ${manager.name || "Not set"}</li>
-          <li>Callsign: ${manager.callsign || "Not set"}</li>
-          <li>Number: ${manager.number || "Not set"}</li>
-          <li>Email: ${manager.email || "Not set"}</li>
-        </ul>
-      </div>
-      
-      <strong>🚗 Fleet Movements</strong>
-      <ul><li>${fleetText}</li></ul>
-      
-      <strong>📌 Other</strong>
-      <ul><li>${otherText}</li></ul>
-    </div>`;
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #333333;
+  }
+  .email-wrapper {
+    max-width: 540px;
+    margin: 40px auto;
+    background-color: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+  }
+  .header {
+    background-color: #007A33;
+    color: #ffffff;
+    text-align: center;
+    padding: 24px 18px 20px;
+    border-bottom: 3px solid #004d20;
+  }
+  .header h1 {
+    font-size: 20px;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.3;
+  }
+  .content {
+    padding: 30px 32px;
+    line-height: 1.65;
+    word-wrap: break-word;
+  }
+  .content h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #000000;
+    margin-top: 30px;
+    margin-bottom: 8px;
+    border-left: 4px solid #007A33;
+    padding-left: 8px;
+  }
+  .content p {
+    margin: 6px 0 16px;
+    font-size: 15px;
+    color: #333333;
+  }
+  .content ul {
+    margin: 8px 0 16px;
+    padding-left: 20px;
+  }
+  .content li {
+    margin: 4px 0;
+    font-size: 15px;
+    color: #333333;
+  }
+  .manager-box {
+    background-color: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-left: 4px solid #007A33;
+    border-radius: 6px;
+    padding: 12px 15px;
+    margin-top: 10px;
+  }
+  .manager-box strong {
+    display: block;
+    font-size: 14px;
+    color: #000000;
+    margin-bottom: 4px;
+  }
+  .manager-box ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+  .manager-box li {
+    font-size: 14px;
+    color: #333333;
+    margin: 2px 0;
+  }
+  .footer {
+    background-color: #fafafa;
+    color: #555555;
+    font-size: 13px;
+    text-align: center;
+    padding: 16px 20px;
+    border-top: 1px solid #e5e5e5;
+  }
+  @media only screen and (max-width: 600px) {
+    .email-wrapper {
+      margin: 20px 10px;
+      width: auto;
+    }
+    .content {
+      padding: 24px 20px;
+    }
+  }
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-color: #f4f4f4 !important;
+      color: #333333 !important;
+    }
+    .email-wrapper {
+      background-color: #ffffff !important;
+    }
+    .header {
+      background-color: #007A33 !important;
+      color: #ffffff !important;
+      border-bottom: 3px solid #004d20 !important;
+    }
+    .content {
+      background-color: #ffffff !important;
+      color: #333333 !important;
+    }
+    .content h2 {
+      color: #000000 !important;
+      border-left: 4px solid #007A33 !important;
+    }
+    .manager-box {
+      background-color: #f9f9f9 !important;
+      border: 1px solid #e5e5e5 !important;
+      border-left: 4px solid #007A33 !important;
+    }
+    .footer {
+      background-color: #fafafa !important;
+      color: #555555 !important;
+      border-top: 1px solid #e5e5e5 !important;
+    }
+  }
+</style>
+
+<div class="email-wrapper">
+  <div class="header">
+    <h1>Taranaki WOM Daily Briefing - ${day.value} ${shiftLabel}</h1>
+  </div>
+
+  <div class="content">
+    <p><strong>${greeting}</strong></p>
+    <p>${welcomeText}</p>
+    ${greetingComment ? `<p>${greetingComment}</p>` : ""}
+    
+    <h2>Tasks</h2>
+    <ul>${taskListFinal.map(t => `<li>${t}</li>`).join("")}</ul>
+    
+    <h2>Crewing</h2>
+    ${crewingHTML}
+    
+    <h2>Road Closures</h2>
+    ${closureLines.length 
+      ? `<ul>${closureLines.map(c => `<li>${c}</li>`).join("")}</ul>`
+      : `<ul><li>No road closures / major roadworks reported for this shift</li></ul>`
+    }
+    
+    <div class="manager-box">
+      <strong>Duty Manager</strong>
+      <ul>
+        <li>Name: ${manager.name || "Not set"}</li>
+        <li>Callsign: ${manager.callsign || "Not set"}</li>
+        <li>Number: ${manager.number || "Not set"}</li>
+        <li>Email: ${manager.email || "Not set"}</li>
+      </ul>
+    </div>
+    
+    <h2>Fleet Movements</h2>
+    <ul><li>${fleetText}</li></ul>
+    
+    <h2>Other</h2>
+    <ul><li>${otherText}</li></ul>
+  </div>
+
+  <div class="footer">
+    <p>
+      This communication was sent by the Taranaki Area Management Team.<br>
+      © 2025 St John New Zealand. All rights reserved.
+    </p>
+  </div>
+</div>`;
 }
 
-function copyEmail(){
+async function copyEmail(){
   render();
-  setTimeout(() => {
-    const r = document.createRange();
-    r.selectNode(preview);
-    const s = window.getSelection();
-    s.removeAllRanges();
-    s.addRange(r);
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  // Get the full HTML from preview
+  const emailHTML = preview.innerHTML;
+  
+  try {
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.write) {
+      const blob = new Blob([emailHTML], { type: 'text/html' });
+      const clipboardItem = new ClipboardItem({ 'text/html': blob });
+      await navigator.clipboard.write([clipboardItem]);
+      alert("✅ Copied for Outlook Web! Paste into your email editor (Ctrl+V or Cmd+V).");
+      return;
+    }
+  } catch (err) {
+    console.log("Clipboard API failed, trying fallback");
+  }
+  
+  // Fallback: select the preview content for copying
+  const r = document.createRange();
+  r.selectNodeContents(preview);
+  const s = window.getSelection();
+  s.removeAllRanges();
+  s.addRange(r);
+  
+  try {
     document.execCommand("copy");
     s.removeAllRanges();
-    alert("✅ Copied for Outlook Web!");
-  }, 100);
+    alert("✅ Copied for Outlook Web! Paste into your email editor (Ctrl+V or Cmd+V).");
+  } catch (err) {
+    alert("⚠️ Please manually select and copy the preview content.");
+  }
 }
 
 /* ---------- EVENTS ---------- */
