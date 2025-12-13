@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Duty Email Builder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  background:#f2f2f2;
+  font-family: Helvetica, Arial, sans-serif;
+  padding:16px;
+}
+
+.container {
+  max-width:1200px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:420px 1fr;
+  gap:16px;
+}
+
+.card {
+  background:#fff;
+  border-radius:8px;
+  padding:14px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+label {
+  font-weight:700;
+  font-size:12px;
+  display:block;
+  margin-top:10px;
+}
+
+input, textarea, select {
+  width:100%;
+  padding:7px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+textarea { resize:vertical; min-height:60px; }
+
+button {
+  margin-top:8px;
+  padding:6px 10px;
+  border-radius:6px;
+  border:none;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.primary { background:#007A33; color:#fff; }
+.secondary { background:#111; color:#fff; }
+.danger { background:#b42318; color:#fff; }
+.small { font-size:12px; padding:4px 6px; }
+
+.preview {
+  background:#f4f4f4;
+  padding:16px;
+  border-radius:8px;
+}
+
+.email-box {
+  border:1px solid #ddd;
+  border-radius:6px;
+  padding:12px;
+}
+
+.manager-box {
+  border:1px solid #ddd;
+  border-left:4px solid #007A33;
+  border-radius:6px;
+  padding:12px;
+  margin-top:12px;
+}
+
+.row { display:flex; gap:6px; align-items:center; margin-top:6px; }
+
+.modal {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+.modal-content {
+  background:#fff;
+  border-radius:8px;
+  padding:16px;
+  width:900px;
+  max-width:95%;
+}
+
+.hidden { display:none; }
+
+@media(max-width:900px){
+  .container{grid-template-columns:1fr;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- BUILDER -->
+<div class="card">
+  <h3>Duty Email Builder</h3>
+
+  <label>Day</label>
+  <select id="day"></select>
+
+  <label>Greeting</label>
+  <input id="greeting" value="Good Morning">
+
+  <label>Extra Tasks</label>
+  <textarea id="extraTasks"></textarea>
+
+  <label>Crewing (tick fully crewed)</label>
+  <div id="crewingChecks"></div>
+
+  <label>Crewing Notes</label>
+  <textarea id="crewingNotes"></textarea>
+
+  <label>Road Closures</label>
+  <div id="closures"></div>
+  <button class="small primary" onclick="addClosure()">➕ Add Road Closure</button>
+
+  <label>Fleet Movements</label>
+  <textarea id="fleet">No fleet movements this shift.</textarea>
+
+  <label>Other</label>
+  <textarea id="other">Nothing extra to report.</textarea>
+
+  <div class="row">
+    <button class="primary" onclick="copyEmail()">Copy Email</button>
+    <button class="secondary" onclick="openSettings()">⚙ Settings</button>
+  </div>
+</div>
+
+<!-- PREVIEW -->
+<div class="card">
+  <h3>Email Preview</h3>
+  <div id="preview" class="preview"></div>
+</div>
+
+</div>
+
+<!-- SETTINGS -->
+<div class="modal" id="settings">
+  <div class="modal-content">
+    <h3>Settings</h3>
+
+    <div class="row">
+      <button class="primary small" onclick="showTab('callsignTab')">Callsigns</button>
+      <button class="primary small" onclick="showTab('tasksTab')">Tasks by Day</button>
+      <button class="danger small" onclick="closeSettings()">Close</button>
+    </div>
+
+    <!-- CALLSIGNS -->
+    <div id="callsignTab">
+      <h4>Crewing Callsigns</h4>
+      <div id="callsignList"></div>
+      <button class="small primary" onclick="addCallsign()">➕ Add Callsign</button>
+    </div>
+
+    <!-- TASKS -->
+    <div id="tasksTab" class="hidden">
+      <label>Day</label>
+      <select id="taskDay"></select>
+      <div id="taskList"></div>
+      <button class="small primary" onclick="addTask()">➕ Add Task</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ---------- DATA ---------- */
+const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+let callsigns = JSON.parse(localStorage.getItem("callsigns")) || ["MIKE52","PAPA21"];
+let dayTasks = JSON.parse(localStorage.getItem("dayTasks")) || Object.fromEntries(days.map(d=>[d,[]]));
+
+/* ---------- INIT ---------- */
+days.forEach(d=>{
+  day.innerHTML+=`<option>${d}</option>`;
+  taskDay.innerHTML+=`<option>${d}</option>`;
+});
+day.value=new Date().toLocaleDateString("en-NZ",{weekday:"long"});
+
+/* ---------- SETTINGS ---------- */
+function openSettings(){ settings.style.display="flex"; renderSettings(); }
+function closeSettings(){ settings.style.display="none"; }
+function showTab(id){
+  callsignTab.classList.add("hidden");
+  tasksTab.classList.add("hidden");
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function renderSettings(){
+  callsignList.innerHTML="";
+  callsigns.forEach((c,i)=>{
+    callsignList.innerHTML+=`
+      <div class="row">
+        <input value="${c}" onchange="callsigns[${i}]=this.value;saveSettings()">
+        <button class="danger small" onclick="callsigns.splice(${i},1);saveSettings()">➖</button>
+      </div>`;
+  });
+  renderTasks();
+  renderCrewingChecks();
+}
+
+function addCallsign(){
+  callsigns.push("");
+  saveSettings();
+}
+
+function renderTasks(){
+  taskList.innerHTML="";
+  dayTasks[taskDay.value].forEach((t,i)=>{
+    taskList.innerHTML+=`
+      <div class="row">
+        <input value="${t}" onchange="dayTasks['${taskDay.value}'][${i}]=this.value;saveSettings()">
+        <button class="danger small" onclick="dayTasks['${taskDay.value}'].splice(${i},1);saveSettings()">➖</button>
+      </div>`;
+  });
+}
+
+function addTask(){
+  dayTasks[taskDay.value].push("");
+  saveSettings();
+}
+
+function saveSettings(){
+  localStorage.setItem("callsigns",JSON.stringify(callsigns));
+  localStorage.setItem("dayTasks",JSON.stringify(dayTasks));
+  renderSettings();
+  render();
+}
+
+/* ---------- CREWING ---------- */
+function renderCrewingChecks(){
+  crewingChecks.innerHTML="";
+  callsigns.forEach(c=>{
+    crewingChecks.innerHTML+=`
+      <div class="row">
+        <input type="checkbox" data-call="${c}" checked>
+        ${c}
+      </div>`;
+  });
+}
+
+/* ---------- ROAD CLOSURES ---------- */
+function addClosure(){
+  const d=document.createElement("div");
+  d.className="row";
+  d.innerHTML=`
+    <input placeholder="Road name">
+    <input placeholder="Type">
+    <input placeholder="Closure info">
+    <input placeholder="Detour">
+    <button class="danger small" onclick="this.parentElement.remove();render()">➖</button>`;
+  closures.appendChild(d);
+}
+
+/* ---------- RENDER ---------- */
+function render(){
+  const taskListFinal=[
+    ...dayTasks[day.value],
+    ...extraTasks.value.split("\n").filter(Boolean)
+  ];
+
+  const crewBoxes=[...document.querySelectorAll("[data-call]")];
+  const fullyCrewed=crewBoxes.every(c=>c.checked);
+
+  let crewingHTML = fullyCrewed
+    ? "<p>All vehicles are fully crewed.</p>"
+    : `<ul>${
+        crewBoxes.filter(c=>!c.checked)
+          .map(c=>`<li>${c.dataset.call} is not fully crewed.</li>`).join("")
+      }</ul>`;
+
+  const notes=crewingNotes.value.split("\n").filter(Boolean);
+  if(notes.length) crewingHTML+=`<ul>${notes.map(n=>`<li>${n}</li>`).join("")}</ul>`;
+
+  const closureLines=[...closures.children].map(r=>{
+    const v=[...r.querySelectorAll("input")].map(i=>i.value);
+    return v.every(Boolean)?`${v[0]} – ${v[1]} – ${v[2]} – ${v[3]}`:null;
+  }).filter(Boolean);
+
+  preview.innerHTML=`
+    <div>
+      <div class="email-box">
+        <p><strong>${greeting.value}</strong><br>Welcome to ${day.value}!</p>
+
+        <strong>Tasks</strong>
+        <ul>${taskListFinal.map(t=>`<li>${t}</li>`).join("")}</ul>
+
+        <strong>Crewing</strong>
+        ${crewingHTML}
+
+        <strong>Road Closures</strong>
+        ${
+          closureLines.length
+            ? `<ul>${closureLines.map(c=>`<li>${c}</li>`).join("")}</ul>`
+            : `<p>No road closures / major roadworks reported for this shift</p>`
+        }
+
+        <strong>Fleet Movements</strong>
+        <ul><li>${fleet.value}</li></ul>
+
+        <strong>Other</strong>
+        <ul><li>${other.value}</li></ul>
+      </div>
+
+      <div class="manager-box">
+        <strong>Duty Manager</strong>
+        <ul>
+          <li>Name: Matthew Zimmerman</li>
+          <li>Callsign: MIKE52</li>
+          <li>Number: 027 214 1929</li>
+          <li>Email: TaranakiDutyWom@stjohn.org.nz</li>
+        </ul>
+      </div>
+    </div>`;
+}
+
+function copyEmail(){
+  render();
+  const r=document.createRange();
+  r.selectNode(preview);
+  const s=window.getSelection();
+  s.removeAllRanges(); s.addRange(r);
+  document.execCommand("copy");
+  s.removeAllRanges();
+  alert("Copied for Outlook Web.");
+}
+
+/* ---------- EVENTS ---------- */
+document.querySelectorAll("input,textarea,select").forEach(e=>e.addEventListener("input",render));
+taskDay.onchange=renderTasks;
+
+renderCrewingChecks();
+render();
+</script>
+
+</body>
+</html>
