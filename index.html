@@ -474,6 +474,7 @@ button:hover {
     <div id="plannedClosuresList" style="margin-top: 16px;"></div>
     <div style="margin-top: 16px; display: flex; gap: 8px;">
       <button class="small primary" onclick="addPlannedClosure()">➕ Add Planned Closure</button>
+      <button class="primary" onclick="savePlannedClosuresWithFeedback(this)">💾 Save</button>
       <button class="danger small" onclick="closePlannedClosures()">❌ Close</button>
     </div>
   </div>
@@ -873,6 +874,37 @@ async function savePlannedClosures(){
   renderPlannedClosures();
 }
 
+async function savePlannedClosuresWithFeedback(button){
+  const saveButton = button || document.querySelector('button[onclick*="savePlannedClosuresWithFeedback"]');
+  if (!saveButton) return;
+  
+  const originalText = saveButton.textContent;
+  
+  saveButton.disabled = true;
+  saveButton.textContent = "💾 Saving...";
+  
+  try {
+    await savePlannedClosures();
+    saveButton.textContent = "✅ Saved!";
+    saveButton.style.background = "#28a745";
+    
+    setTimeout(() => {
+      saveButton.textContent = originalText;
+      saveButton.style.background = "";
+      saveButton.disabled = false;
+    }, 2000);
+  } catch (error) {
+    saveButton.textContent = "❌ Error";
+    saveButton.style.background = "#dc3545";
+    
+    setTimeout(() => {
+      saveButton.textContent = originalText;
+      saveButton.style.background = "";
+      saveButton.disabled = false;
+    }, 2000);
+  }
+}
+
 function checkPlannedClosures(){
   const today = new Date();
   const currentDay = day.value;
@@ -996,8 +1028,8 @@ function render(){
   }).filter(Boolean);
   
   // Duty Manager
-  const managerIndex = parseInt(dutyManager.value) || 0;
-  const manager = dutyManagers[managerIndex] || dutyManagers[0] || {};
+  const managerIndex = dutyManager.value === "" ? -1 : parseInt(dutyManager.value);
+  const manager = managerIndex >= 0 && dutyManagers[managerIndex] ? dutyManagers[managerIndex] : null;
   
   // Fleet Movements
   const fleetText = fleet.value.trim() || "No fleet movements this shift.";
@@ -1026,20 +1058,20 @@ function render(){
   // Format crewing HTML with inline styles for Outlook
   let crewingHTMLFormatted = "";
   if (fullyCrewed && singleCrewed.length === 0 && uncrewed.length === 0) {
-    crewingHTMLFormatted = "<ul><li><strong>All vehicles are fully crewed.</strong></li></ul>";
+    crewingHTMLFormatted = `<ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;"><strong>All vehicles are fully crewed.</strong></li></ul>`;
   } else {
-    crewingHTMLFormatted = "<ul>";
+    crewingHTMLFormatted = `<ul style="margin: 0; padding-left: 20px;">`;
     callsigns.forEach(c => {
       const status = crewingStatus[c] || "fully";
       let statusText = status === "fully" ? "Fully Crewed" : (status === "single" ? "Single Crewed" : "Uncrewed");
-      crewingHTMLFormatted += `<li>${c}: ${formatStatusBadge(statusText, status)}</li>`;
+      crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${c}: ${formatStatusBadge(statusText, status)}</li>`;
     });
-    crewingHTMLFormatted += "</ul>";
+    crewingHTMLFormatted += `</ul>`;
   }
   
   const crewingNotesList = crewingNotes.value.split("\n").filter(Boolean);
   if (crewingNotesList.length) {
-    crewingHTMLFormatted += `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;"><strong>Notes:</strong><ul style="margin-top: 8px;">${crewingNotesList.map(n => `<li>${n}</li>`).join("")}</ul></div>`;
+    crewingHTMLFormatted += `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;"><strong>Notes:</strong><ul style="margin: 8px 0 0 0; padding-left: 20px;">${crewingNotesList.map(n => `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${n}</li>`).join("")}</ul></div>`;
   }
 
   preview.innerHTML = `
@@ -1050,7 +1082,7 @@ function render(){
         <!-- Header -->
         <tr>
           <td bgcolor="#007A33" style="padding: 20px 25px; border-bottom: 4px solid #004d20;">
-            <h1 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 8px 0; letter-spacing: 0.5px;">DAILY SHIFT BRIEFING</h1>
+            <h1 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 700; color: #ffffff !important; margin: 0 0 8px 0; letter-spacing: 0.5px; line-height: 1.3;">DAILY SHIFT BRIEFING</h1>
             <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: #ffffff; margin: 0;">${day.value} ${shiftLabel} Shift • ${dateStr}</p>
           </td>
         </tr>
@@ -1115,19 +1147,19 @@ function render(){
                   <table width="100%" cellpadding="0" cellspacing="0" border="0">
                     <tr>
                       <td width="100" style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #007A33; vertical-align: top;"><strong>Duty Manager:</strong></td>
-                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager.name || "Not set"}</td>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager ? manager.name : "N/A"}</td>
                     </tr>
                     <tr>
                       <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #007A33; vertical-align: top;"><strong>Callsign:</strong></td>
-                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager.callsign || "Not set"}</td>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager ? manager.callsign : "N/A"}</td>
                     </tr>
                     <tr>
                       <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #007A33; vertical-align: top;"><strong>Contact:</strong></td>
-                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager.number || "Not set"}</td>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager ? manager.number : "N/A"}</td>
                     </tr>
                     <tr>
                       <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #007A33; vertical-align: top;"><strong>Email:</strong></td>
-                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager.email || "Not set"}</td>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager ? manager.email : "N/A"}</td>
                     </tr>
                   </table>
                 </td>
