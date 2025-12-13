@@ -293,6 +293,13 @@ button:hover {
   grid-template-columns: 1fr;
 }
 
+.manager-fields-horizontal {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.2fr 2fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
 .planned-closure-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -316,14 +323,26 @@ button:hover {
 
 .closure-item {
   background: #f8f9fa;
-  padding: 16px;
+  padding: 12px;
   border-radius: 6px;
   border: 1px solid #ddd;
   margin-top: 12px;
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 2fr 2fr auto;
+  gap: 8px;
+  align-items: center;
 }
 
 .closure-item:first-child {
   margin-top: 0;
+}
+
+.closure-item input {
+  margin: 0;
+}
+
+.closure-item button {
+  margin: 0;
 }
 
 .planned-closure-fields {
@@ -661,15 +680,11 @@ function renderManagers(){
   dutyManagers.forEach((m,i)=>{
     managerList.innerHTML += `
       <div class="manager-item">
-        <div class="manager-fields">
+        <div class="manager-fields-horizontal">
           <input placeholder="Name" value="${m.name}" onchange="dutyManagers[${i}].name=this.value">
           <input placeholder="Callsign" value="${m.callsign}" onchange="dutyManagers[${i}].callsign=this.value">
-        </div>
-        <div class="manager-fields">
           <input placeholder="Number" value="${m.number}" onchange="dutyManagers[${i}].number=this.value">
           <input placeholder="Email" value="${m.email}" onchange="dutyManagers[${i}].email=this.value">
-        </div>
-        <div style="margin-top: 8px;">
           <button class="danger small" onclick="dutyManagers.splice(${i},1);renderManagers()">➖ Remove</button>
         </div>
       </div>`;
