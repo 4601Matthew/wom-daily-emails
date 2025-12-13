@@ -367,6 +367,9 @@ button:hover {
 <div class="card builder-card">
   <h3>📋 Duty Email Builder</h3>
 
+  <label>📅 Date</label>
+  <input type="date" id="selectedDate">
+
   <label>📅 Day & Shift</label>
   <div class="shift-selector">
     <select id="day"></select>
@@ -471,11 +474,35 @@ button:hover {
 <div class="modal" id="plannedClosuresModal">
   <div class="modal-content">
     <h3>📅 Planned Road Closures</h3>
-    <div id="plannedClosuresList" style="margin-top: 16px;"></div>
-    <div style="margin-top: 16px; display: flex; gap: 8px;">
-      <button class="small primary" onclick="addPlannedClosure()">➕ Add Planned Closure</button>
-      <button class="primary" onclick="savePlannedClosuresWithFeedback(this)">💾 Save</button>
+    
+    <div class="tab-buttons" style="margin-top: 16px;">
+      <button class="primary small" onclick="showClosureTab('addClosureTab')">➕ Add Road Closure</button>
+      <button class="primary small" onclick="showClosureTab('activeClosuresTab')">🟢 Active</button>
+      <button class="primary small" onclick="showClosureTab('futureClosuresTab')">🔵 Future</button>
+      <button class="primary small" onclick="showClosureTab('pastClosuresTab')">⚫ Past</button>
+      <button class="primary" onclick="savePlannedClosuresWithFeedback(this)" style="margin-left: auto;">💾 Save</button>
       <button class="danger small" onclick="closePlannedClosures()">❌ Close</button>
+    </div>
+
+    <!-- Add Closure Tab -->
+    <div id="addClosureTab" class="settings-section">
+      <div id="newClosureForm" style="margin-top: 16px;"></div>
+      <button class="small primary" onclick="addPlannedClosure()" style="margin-top: 12px;">➕ Add Planned Closure</button>
+    </div>
+
+    <!-- Active Closures Tab -->
+    <div id="activeClosuresTab" class="hidden settings-section">
+      <div id="activeClosuresList" style="margin-top: 16px;"></div>
+    </div>
+
+    <!-- Future Closures Tab -->
+    <div id="futureClosuresTab" class="hidden settings-section">
+      <div id="futureClosuresList" style="margin-top: 16px;"></div>
+    </div>
+
+    <!-- Past Closures Tab -->
+    <div id="pastClosuresTab" class="hidden settings-section">
+      <div id="pastClosuresList" style="margin-top: 16px;"></div>
     </div>
   </div>
 </div>
@@ -624,13 +651,26 @@ days.forEach(d=>{
   taskDay.innerHTML += `<option>${d}</option>`;
 });
 
+// Set current date
+const today = new Date();
+const todayStr = today.toISOString().split('T')[0];
+selectedDate.value = todayStr;
+
 // Set current day
-const today = new Date().toLocaleDateString("en-NZ",{weekday:"long"});
-day.value = today;
+day.value = today.toLocaleDateString("en-NZ",{weekday:"long"});
 
 // Set default shift based on time
-const hour = new Date().getHours();
+const hour = today.getHours();
 shift.value = (hour >= 6 && hour < 18) ? "Day" : "Night";
+
+// Update day when date changes
+selectedDate.addEventListener("change", () => {
+  const selected = new Date(selectedDate.value);
+  day.value = selected.toLocaleDateString("en-NZ",{weekday:"long"});
+  updateTaskDisplay();
+  checkPlannedClosures();
+  render();
+});
 
 /* ---------- SETTINGS ---------- */
 function openSettings(){ 
@@ -812,9 +852,27 @@ function renderCrewingChecks(){
 }
 
 /* ---------- ROAD CLOSURES ---------- */
+function showClosureTab(tabId){
+  addClosureTab.classList.add("hidden");
+  activeClosuresTab.classList.add("hidden");
+  futureClosuresTab.classList.add("hidden");
+  pastClosuresTab.classList.add("hidden");
+  document.getElementById(tabId).classList.remove("hidden");
+  
+  if (tabId === "addClosureTab") {
+    renderNewClosureForm();
+  } else if (tabId === "activeClosuresTab") {
+    renderActiveClosures();
+  } else if (tabId === "futureClosuresTab") {
+    renderFutureClosures();
+  } else if (tabId === "pastClosuresTab") {
+    renderPastClosures();
+  }
+}
+
 function openPlannedClosures(){
   plannedClosuresModal.style.display = "flex";
-  renderPlannedClosures();
+  showClosureTab("addClosureTab");
 }
 
 function closePlannedClosures(){
@@ -823,37 +881,132 @@ function closePlannedClosures(){
   render();
 }
 
-function renderPlannedClosures(){
-  plannedClosuresList.innerHTML = "";
+function renderNewClosureForm(){
+  newClosureForm.innerHTML = "";
   plannedClosures.forEach((closure,i)=>{
     const startDate = closure.startDate || "";
     const endDate = closure.endDate || "";
-    plannedClosuresList.innerHTML += `
+    newClosureForm.innerHTML += `
       <div class="closure-item">
         <div class="planned-closure-fields">
-          <input type="date" placeholder="Start Date" value="${startDate}" onchange="plannedClosures[${i}].startDate=this.value;savePlannedClosures()">
-          <input type="date" placeholder="End Date" value="${endDate}" onchange="plannedClosures[${i}].endDate=this.value;savePlannedClosures()">
+          <input type="date" placeholder="Start Date" value="${startDate}" onchange="plannedClosures[${i}].startDate=this.value">
+          <input type="date" placeholder="End Date" value="${endDate}" onchange="plannedClosures[${i}].endDate=this.value">
         </div>
         <div class="planned-closure-fields">
-          <select onchange="plannedClosures[${i}].shiftType=this.value;savePlannedClosures()">
+          <select onchange="plannedClosures[${i}].shiftType=this.value">
             <option value="Day" ${closure.shiftType==="Day"?"selected":""}>Day Shift</option>
             <option value="Night" ${closure.shiftType==="Night"?"selected":""}>Night Shift</option>
             <option value="All" ${closure.shiftType==="All"?"selected":""}>All Shifts</option>
           </select>
-          <input placeholder="Road name" value="${closure.roadName || ""}" onchange="plannedClosures[${i}].roadName=this.value;savePlannedClosures()">
+          <input placeholder="Road name" value="${closure.roadName || ""}" onchange="plannedClosures[${i}].roadName=this.value">
         </div>
         <div class="planned-closure-fields">
-          <input placeholder="Type" value="${closure.type || ""}" onchange="plannedClosures[${i}].type=this.value;savePlannedClosures()">
-          <input placeholder="Closure info" value="${closure.closureInfo || ""}" onchange="plannedClosures[${i}].closureInfo=this.value;savePlannedClosures()">
+          <input placeholder="Type" value="${closure.type || ""}" onchange="plannedClosures[${i}].type=this.value">
+          <input placeholder="Closure info" value="${closure.closureInfo || ""}" onchange="plannedClosures[${i}].closureInfo=this.value">
         </div>
         <div class="planned-closure-fields full-width">
-          <input placeholder="Detour" value="${closure.detour || ""}" onchange="plannedClosures[${i}].detour=this.value;savePlannedClosures()">
+          <input placeholder="Detour" value="${closure.detour || ""}" onchange="plannedClosures[${i}].detour=this.value">
         </div>
         <div style="margin-top: 8px;">
-          <button class="danger small" onclick="plannedClosures.splice(${i},1);savePlannedClosures()">➖ Remove</button>
+          <button class="danger small" onclick="plannedClosures.splice(${i},1);renderNewClosureForm()">➖ Remove</button>
         </div>
       </div>`;
   });
+}
+
+function renderActiveClosures(){
+  const today = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  today.setHours(0,0,0,0);
+  
+  activeClosuresList.innerHTML = "";
+  const active = plannedClosures.filter((closure, i) => {
+    if (!closure.startDate || !closure.endDate) return false;
+    const start = new Date(closure.startDate);
+    const end = new Date(closure.endDate);
+    end.setHours(23,59,59);
+    return today >= start && today <= end;
+  });
+  
+  if (active.length === 0) {
+    activeClosuresList.innerHTML = "<p>No active road closures.</p>";
+  } else {
+    active.forEach((closure, idx) => {
+      const i = plannedClosures.indexOf(closure);
+      activeClosuresList.innerHTML += renderClosureItem(closure, i);
+    });
+  }
+}
+
+function renderFutureClosures(){
+  const today = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  today.setHours(0,0,0,0);
+  
+  futureClosuresList.innerHTML = "";
+  const future = plannedClosures.filter((closure, i) => {
+    if (!closure.startDate) return false;
+    const start = new Date(closure.startDate);
+    return start > today;
+  });
+  
+  if (future.length === 0) {
+    futureClosuresList.innerHTML = "<p>No future road closures.</p>";
+  } else {
+    future.forEach((closure, idx) => {
+      const i = plannedClosures.indexOf(closure);
+      futureClosuresList.innerHTML += renderClosureItem(closure, i);
+    });
+  }
+}
+
+function renderPastClosures(){
+  const today = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  today.setHours(23,59,59,999);
+  
+  pastClosuresList.innerHTML = "";
+  const past = plannedClosures.filter((closure, i) => {
+    if (!closure.endDate) return false;
+    const end = new Date(closure.endDate);
+    return end < today;
+  });
+  
+  if (past.length === 0) {
+    pastClosuresList.innerHTML = "<p>No past road closures.</p>";
+  } else {
+    past.forEach((closure, idx) => {
+      const i = plannedClosures.indexOf(closure);
+      pastClosuresList.innerHTML += renderClosureItem(closure, i);
+    });
+  }
+}
+
+function renderClosureItem(closure, i){
+  const startDate = closure.startDate || "";
+  const endDate = closure.endDate || "";
+  return `
+    <div class="closure-item">
+      <div class="planned-closure-fields">
+        <input type="date" placeholder="Start Date" value="${startDate}" onchange="plannedClosures[${i}].startDate=this.value">
+        <input type="date" placeholder="End Date" value="${endDate}" onchange="plannedClosures[${i}].endDate=this.value">
+      </div>
+      <div class="planned-closure-fields">
+        <select onchange="plannedClosures[${i}].shiftType=this.value">
+          <option value="Day" ${closure.shiftType==="Day"?"selected":""}>Day Shift</option>
+          <option value="Night" ${closure.shiftType==="Night"?"selected":""}>Night Shift</option>
+          <option value="All" ${closure.shiftType==="All"?"selected":""}>All Shifts</option>
+        </select>
+        <input placeholder="Road name" value="${closure.roadName || ""}" onchange="plannedClosures[${i}].roadName=this.value">
+      </div>
+      <div class="planned-closure-fields">
+        <input placeholder="Type" value="${closure.type || ""}" onchange="plannedClosures[${i}].type=this.value">
+        <input placeholder="Closure info" value="${closure.closureInfo || ""}" onchange="plannedClosures[${i}].closureInfo=this.value">
+      </div>
+      <div class="planned-closure-fields full-width">
+        <input placeholder="Detour" value="${closure.detour || ""}" onchange="plannedClosures[${i}].detour=this.value">
+      </div>
+      <div style="margin-top: 8px;">
+        <button class="danger small" onclick="plannedClosures.splice(${i},1);renderNewClosureForm();renderActiveClosures();renderFutureClosures();renderPastClosures();">➖ Remove</button>
+      </div>
+    </div>`;
 }
 
 function addPlannedClosure(){
@@ -866,12 +1019,15 @@ function addPlannedClosure(){
     closureInfo: "",
     detour: ""
   });
-  savePlannedClosures();
+  renderNewClosureForm();
 }
 
 async function savePlannedClosures(){
   await saveDataToAPI();
-  renderPlannedClosures();
+  renderNewClosureForm();
+  renderActiveClosures();
+  renderFutureClosures();
+  renderPastClosures();
 }
 
 async function savePlannedClosuresWithFeedback(button){
@@ -1038,7 +1194,8 @@ function render(){
   const otherText = other.value.trim() || "Nothing extra to report.";
   
   const shiftLabel = shift.value === "Night" ? "Night" : "Day";
-  const dateStr = new Date().toLocaleDateString("en-NZ", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const selectedDateObj = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  const dateStr = selectedDateObj.toLocaleDateString("en-NZ", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   const timeStr = new Date().toLocaleTimeString("en-NZ", { hour: "2-digit", minute: "2-digit" });
   
   // Format status badges for Outlook (inline styles)
@@ -1056,16 +1213,24 @@ function render(){
   };
 
   // Format crewing HTML with inline styles for Outlook
+  // Only show vehicles that are NOT fully crewed
+  const notFullyCrewed = callsigns.filter(c => {
+    const status = crewingStatus[c] || "fully";
+    return status !== "fully";
+  });
+  
   let crewingHTMLFormatted = "";
-  if (fullyCrewed && singleCrewed.length === 0 && uncrewed.length === 0) {
-    crewingHTMLFormatted = `<ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;"><strong>All vehicles are fully crewed.</strong></li></ul>`;
+  if (notFullyCrewed.length === 0) {
+    crewingHTMLFormatted = `<ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">All vehicles are fully crewed.</li></ul>`;
   } else {
     crewingHTMLFormatted = `<ul style="margin: 0; padding-left: 20px;">`;
-    callsigns.forEach(c => {
+    notFullyCrewed.forEach(c => {
       const status = crewingStatus[c] || "fully";
-      let statusText = status === "fully" ? "Fully Crewed" : (status === "single" ? "Single Crewed" : "Uncrewed");
-      crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${c}: ${formatStatusBadge(statusText, status)}</li>`;
+      let statusText = status === "single" ? "Single Crewed" : "Uncrewed";
+      let statusColor = status === "single" ? "#ff8c00" : "#dc3545"; // Orange for single, red for uncrewed
+      crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${c} - <span style="color: ${statusColor}; font-weight: 600;">${statusText}</span></li>`;
     });
+    crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">All other vehicles are fully crewed.</li>`;
     crewingHTMLFormatted += `</ul>`;
   }
   
