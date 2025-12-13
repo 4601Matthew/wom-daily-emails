@@ -445,9 +445,14 @@ button:hover {
 
     <!-- TASKS -->
     <div id="tasksTab" class="hidden settings-section">
-      <h4>Tasks by Day</h4>
+      <h4>Tasks by Day & Shift</h4>
       <label style="margin-top: 12px;">Select Day</label>
       <select id="taskDay"></select>
+      <label style="margin-top: 12px;">Select Shift</label>
+      <select id="taskShift">
+        <option value="Day">Day Shift</option>
+        <option value="Night">Night Shift</option>
+      </select>
       <div id="taskList" style="margin-top: 12px;"></div>
       <button class="small primary" onclick="addTask()" style="margin-top: 12px;">➕ Add Task</button>
     </div>
@@ -486,7 +491,7 @@ const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sun
 // Default data
 const defaultData = {
   callsigns: ["MIKE52","PAPA21"],
-  dayTasks: Object.fromEntries(days.map(d=>[d,[]])),
+  dayTasks: Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
   dutyManagers: [{
     name: "Matthew Zimmerman",
     callsign: "MIKE52",
@@ -569,7 +574,24 @@ async function saveDataToAPI() {
 
 function loadDataFromLocalStorage() {
   callsigns = JSON.parse(localStorage.getItem("callsigns")) || defaultData.callsigns;
-  dayTasks = JSON.parse(localStorage.getItem("dayTasks")) || defaultData.dayTasks;
+  const savedDayTasks = JSON.parse(localStorage.getItem("dayTasks"));
+  if (savedDayTasks) {
+    // Migrate old format if needed
+    dayTasks = {};
+    days.forEach(d => {
+      if (savedDayTasks[d]) {
+        if (Array.isArray(savedDayTasks[d])) {
+          dayTasks[d] = {Day: savedDayTasks[d], Night: []};
+        } else {
+          dayTasks[d] = savedDayTasks[d];
+        }
+      } else {
+        dayTasks[d] = {Day: [], Night: []};
+      }
+    });
+  } else {
+    dayTasks = defaultData.dayTasks;
+  }
   dutyManagers = JSON.parse(localStorage.getItem("dutyManagers")) || defaultData.dutyManagers;
   plannedClosures = JSON.parse(localStorage.getItem("plannedClosures")) || defaultData.plannedClosures;
   crewingStatus = JSON.parse(localStorage.getItem("crewingStatus")) || defaultData.crewingStatus;
@@ -649,29 +671,53 @@ function addCallsign(){
 
 function renderTasks(){
   taskList.innerHTML = "";
-  if (!dayTasks[taskDay.value]) dayTasks[taskDay.value] = [];
+  const dayKey = taskDay.value;
+  const shiftKey = taskShift.value;
   
-  dayTasks[taskDay.value].forEach((t,i)=>{
+  // Initialize if needed
+  if (!dayTasks[dayKey]) dayTasks[dayKey] = {Day: [], Night: []};
+  if (!dayTasks[dayKey][shiftKey]) dayTasks[dayKey][shiftKey] = [];
+  
+  dayTasks[dayKey][shiftKey].forEach((t,i)=>{
     taskList.innerHTML += `
       <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'};">
-        <input value="${t}" onchange="dayTasks['${taskDay.value}'][${i}]=this.value">
-        <button class="danger small" onclick="dayTasks['${taskDay.value}'].splice(${i},1);renderTasks()">➖</button>
+        <input value="${t}" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}]=this.value">
+        <button class="danger small" onclick="dayTasks['${dayKey}']['${shiftKey}'].splice(${i},1);renderTasks()">➖</button>
       </div>`;
   });
 }
 
 function addTask(){
-  if (!dayTasks[taskDay.value]) dayTasks[taskDay.value] = [];
-  dayTasks[taskDay.value].push("");
+  const dayKey = taskDay.value;
+  const shiftKey = taskShift.value;
+  
+  if (!dayTasks[dayKey]) dayTasks[dayKey] = {Day: [], Night: []};
+  if (!dayTasks[dayKey][shiftKey]) dayTasks[dayKey][shiftKey] = [];
+  
+  dayTasks[dayKey][shiftKey].push("");
   renderTasks();
 }
 
 function updateTaskDisplay(){
-  const currentTasks = dayTasks[day.value] || [];
+  const dayKey = day.value;
+  const shiftKey = shift.value;
+  
+  // Handle old format (array) or new format (object with Day/Night)
+  let currentTasks = [];
+  if (dayTasks[dayKey]) {
+    if (Array.isArray(dayTasks[dayKey])) {
+      // Old format - migrate
+      currentTasks = dayTasks[dayKey];
+      dayTasks[dayKey] = {Day: dayTasks[dayKey], Night: []};
+    } else {
+      currentTasks = dayTasks[dayKey][shiftKey] || [];
+    }
+  }
+  
   if (currentTasks.length > 0) {
     taskDisplay.innerHTML = currentTasks.map(t => `• ${t}`).join("<br>");
   } else {
-    taskDisplay.innerHTML = "No tasks configured for this day. Add them in Settings.";
+    taskDisplay.innerHTML = "No tasks configured for this day/shift. Add them in Settings.";
   }
 }
 
@@ -702,7 +748,7 @@ function addManager(){
 }
 
 function updateManagerDropdown(){
-  dutyManager.innerHTML = "";
+  dutyManager.innerHTML = '<option value="">Please select...</option>';
   dutyManagers.forEach((m,i)=>{
     dutyManager.innerHTML += `<option value="${i}">${m.name || 'Unnamed'} (${m.callsign || 'No callsign'})</option>`;
   });
@@ -912,9 +958,23 @@ function render(){
   
   const greetingComment = document.getElementById("greetingComment").value.trim();
   
-  // Tasks
+  // Tasks - handle both old format (array) and new format (object with Day/Night)
+  let dayTasksList = [];
+  const dayKey = day.value;
+  const shiftKey = shift.value;
+  
+  if (dayTasks[dayKey]) {
+    if (Array.isArray(dayTasks[dayKey])) {
+      // Old format
+      dayTasksList = dayTasks[dayKey];
+    } else {
+      // New format
+      dayTasksList = dayTasks[dayKey][shiftKey] || [];
+    }
+  }
+  
   const taskListFinal = [
-    ...(dayTasks[day.value] || []),
+    ...dayTasksList,
     ...extraTasks.value.split("\n").filter(Boolean)
   ];
   
@@ -928,34 +988,6 @@ function render(){
   const singleCrewed = crewStatuses.filter(c => c.status === "single");
   const uncrewed = crewStatuses.filter(c => c.status === "uncrewed");
   
-  let crewingHTML = "";
-  if (fullyCrewed && singleCrewed.length === 0 && uncrewed.length === 0) {
-    crewingHTML = "<ul><li><strong>All vehicles are fully crewed.</strong></li></ul>";
-  } else {
-    crewingHTML = "<ul>";
-    callsigns.forEach(c => {
-      const status = crewingStatus[c] || "fully";
-      let statusText = "";
-      let statusClass = "";
-      if (status === "fully") {
-        statusText = "Fully Crewed";
-        statusClass = "status-fully";
-      } else if (status === "single") {
-        statusText = "Single Crewed";
-        statusClass = "status-single";
-      } else {
-        statusText = "Uncrewed";
-        statusClass = "status-uncrewed";
-      }
-      crewingHTML += `<li><strong>${c}:</strong> <span class="status-badge ${statusClass}">${statusText}</span></li>`;
-    });
-    crewingHTML += "</ul>";
-  }
-  
-  const notes = crewingNotes.value.split("\n").filter(Boolean);
-  if (notes.length) {
-    crewingHTML += `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;"><strong>Notes:</strong><ul style="margin-top: 8px;">${notes.map(n => `<li>${n}</li>`).join("")}</ul></div>`;
-  }
   
   // Road closures
   const closureLines = [...closures.children].map(r => {
@@ -977,247 +1009,163 @@ function render(){
   const dateStr = new Date().toLocaleDateString("en-NZ", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   const timeStr = new Date().toLocaleTimeString("en-NZ", { hour: "2-digit", minute: "2-digit" });
   
+  // Format status badges for Outlook (inline styles)
+  const formatStatusBadge = (text, status) => {
+    let bgColor = "#28a745";
+    let textColor = "#ffffff";
+    if (status === "single") {
+      bgColor = "#ffc107";
+      textColor = "#1a1a1a";
+    } else if (status === "uncrewed") {
+      bgColor = "#dc3545";
+      textColor = "#ffffff";
+    }
+    return `<span style="display: inline-block; padding: 3px 8px; font-size: 12px; font-weight: 600; margin-left: 8px; background-color: ${bgColor}; color: ${textColor};">${text}</span>`;
+  };
+
+  // Format crewing HTML with inline styles for Outlook
+  let crewingHTMLFormatted = "";
+  if (fullyCrewed && singleCrewed.length === 0 && uncrewed.length === 0) {
+    crewingHTMLFormatted = "<ul><li><strong>All vehicles are fully crewed.</strong></li></ul>";
+  } else {
+    crewingHTMLFormatted = "<ul>";
+    callsigns.forEach(c => {
+      const status = crewingStatus[c] || "fully";
+      let statusText = status === "fully" ? "Fully Crewed" : (status === "single" ? "Single Crewed" : "Uncrewed");
+      crewingHTMLFormatted += `<li>${c}: ${formatStatusBadge(statusText, status)}</li>`;
+    });
+    crewingHTMLFormatted += "</ul>";
+  }
+  
+  const crewingNotesList = crewingNotes.value.split("\n").filter(Boolean);
+  if (crewingNotesList.length) {
+    crewingHTMLFormatted += `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;"><strong>Notes:</strong><ul style="margin-top: 8px;">${crewingNotesList.map(n => `<li>${n}</li>`).join("")}</ul></div>`;
+  }
+
   preview.innerHTML = `
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    background-color: #ffffff;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    color: #1a1a1a;
-    font-size: 14px;
-    line-height: 1.6;
-  }
-  .briefing-wrapper {
-    max-width: 700px;
-    margin: 0 auto;
-    background-color: #ffffff;
-    border: 2px solid #007A33;
-  }
-  .briefing-header {
-    background-color: #007A33;
-    color: #ffffff;
-    padding: 20px 25px;
-    border-bottom: 4px solid #004d20;
-  }
-  .briefing-header h1 {
-    font-size: 22px;
-    font-weight: 700;
-    margin: 0 0 8px 0;
-    letter-spacing: 0.5px;
-  }
-  .briefing-header .date-info {
-    font-size: 13px;
-    opacity: 0.95;
-    margin: 0;
-  }
-  .briefing-content {
-    padding: 25px;
-  }
-  .briefing-section {
-    margin-bottom: 25px;
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 20px;
-  }
-  .briefing-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-  }
-  .section-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #007A33;
-    margin: 0 0 12px 0;
-    padding-bottom: 6px;
-    border-bottom: 2px solid #007A33;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .section-content {
-    margin: 0;
-    padding-left: 0;
-  }
-  .section-content ul {
-    margin: 0;
-    padding-left: 20px;
-  }
-  .section-content li {
-    margin: 8px 0;
-    font-size: 14px;
-    color: #1a1a1a;
-    line-height: 1.7;
-  }
-  .section-content p {
-    margin: 8px 0;
-    font-size: 14px;
-    color: #1a1a1a;
-    line-height: 1.7;
-  }
-  .greeting-section {
-    background-color: #f8f9fa;
-    padding: 15px 20px;
-    border-left: 4px solid #007A33;
-    margin-bottom: 25px;
-  }
-  .greeting-section p {
-    margin: 4px 0;
-    font-size: 15px;
-  }
-  .greeting-section strong {
-    font-size: 16px;
-    color: #007A33;
-  }
-  .manager-info {
-    background-color: #f0f8f4;
-    border: 2px solid #007A33;
-    border-left: 6px solid #007A33;
-    padding: 15px 20px;
-    margin: 20px 0;
-  }
-  .manager-info table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0;
-  }
-  .manager-info td {
-    padding: 6px 0;
-    font-size: 14px;
-    vertical-align: top;
-  }
-  .manager-info td:first-child {
-    font-weight: 600;
-    color: #007A33;
-    width: 100px;
-  }
-  .manager-info td:last-child {
-    color: #1a1a1a;
-  }
-  .status-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 3px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-left: 8px;
-  }
-  .status-fully {
-    background-color: #28a745;
-    color: #ffffff;
-  }
-  .status-single {
-    background-color: #ffc107;
-    color: #1a1a1a;
-  }
-  .status-uncrewed {
-    background-color: #dc3545;
-    color: #ffffff;
-  }
-  .closure-item {
-    background-color: #fff3cd;
-    border-left: 4px solid #ffc107;
-    padding: 10px 15px;
-    margin: 8px 0;
-  }
-  .footer {
-    background-color: #f8f9fa;
-    padding: 15px 25px;
-    border-top: 2px solid #e0e0e0;
-    text-align: center;
-    font-size: 12px;
-    color: #666666;
-  }
-  @media only screen and (max-width: 600px) {
-    .briefing-wrapper {
-      border-left: none;
-      border-right: none;
-    }
-    .briefing-content {
-      padding: 20px 15px;
-    }
-    .briefing-header {
-      padding: 15px 20px;
-    }
-  }
-</style>
-
-<div class="briefing-wrapper">
-  <div class="briefing-header">
-    <h1>DAILY SHIFT BRIEFING</h1>
-    <p class="date-info">${day.value} ${shiftLabel} Shift • ${dateStr}</p>
-  </div>
-
-  <div class="briefing-content">
-    <div class="greeting-section">
-      <p><strong>${greeting}</strong></p>
-      <p>${welcomeText}</p>
-      ${greetingComment ? `<p style="margin-top: 10px; font-style: italic;">${greetingComment}</p>` : ""}
-    </div>
-
-    <div class="briefing-section">
-      <h2 class="section-title">Operational Tasks</h2>
-      <div class="section-content">
-        <ul>${taskListFinal.map(t => `<li>${t}</li>`).join("")}</ul>
-      </div>
-    </div>
-
-    <div class="briefing-section">
-      <h2 class="section-title">Crewing Status</h2>
-      <div class="section-content">
-        ${crewingHTML}
-      </div>
-    </div>
-
-    <div class="briefing-section">
-      <h2 class="section-title">Road Closures & Major Roadworks</h2>
-      <div class="section-content">
-        ${closureLines.length 
-          ? closureLines.map(c => `<div class="closure-item"><strong>${c.split(" – ")[0]}</strong> – ${c.split(" – ").slice(1).join(" – ")}</div>`).join("")
-          : `<ul><li>No road closures or major roadworks reported for this shift.</li></ul>`
-        }
-      </div>
-    </div>
-
-    <div class="manager-info">
-      <table>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff;">
+  <tr>
+    <td align="center" style="padding: 20px 0;">
+      <table width="700" cellpadding="0" cellspacing="0" border="0" style="max-width: 700px; border: 2px solid #007A33;">
+        <!-- Header -->
         <tr>
-          <td><strong>Duty Manager:</strong></td>
-          <td>${manager.name || "Not set"}</td>
+          <td bgcolor="#007A33" style="padding: 20px 25px; border-bottom: 4px solid #004d20;">
+            <h1 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 8px 0; letter-spacing: 0.5px;">DAILY SHIFT BRIEFING</h1>
+            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: #ffffff; margin: 0;">${day.value} ${shiftLabel} Shift • ${dateStr}</p>
+          </td>
         </tr>
+        
+        <!-- Content -->
         <tr>
-          <td><strong>Callsign:</strong></td>
-          <td>${manager.callsign || "Not set"}</td>
+          <td style="padding: 25px;">
+            <!-- Greeting Section -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+              <tr>
+                <td bgcolor="#f8f9fa" style="padding: 15px 20px; border-left: 4px solid #007A33;">
+                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; color: #007A33; font-weight: 700; margin: 4px 0;"><strong>${greeting}</strong></p>
+                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; color: #1a1a1a; margin: 4px 0;">${welcomeText}</p>
+                  ${greetingComment ? `<p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; color: #1a1a1a; margin: 10px 0 4px 0; font-style: italic;">${greetingComment}</p>` : ""}
+                </td>
+              </tr>
+            </table>
+
+            <!-- Operational Tasks -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px;">
+              <tr>
+                <td>
+                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; color: #007A33; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px;">Operational Tasks</h2>
+                  ${taskListFinal.length > 0 
+                    ? `<ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${taskListFinal.map(t => t).join("</li><li style=\"margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;\">")}</li></ul>`
+                    : `<ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">Nothing extra from the daily duties sheets</li></ul>`
+                  }
+                </td>
+              </tr>
+            </table>
+
+            <!-- Crewing Status -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px;">
+              <tr>
+                <td>
+                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; color: #007A33; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px;">Crewing Status</h2>
+                  <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a;">${crewingHTMLFormatted}</div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Road Closures -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px;">
+              <tr>
+                <td>
+                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; color: #007A33; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px;">Road Closures & Major Roadworks</h2>
+                  ${closureLines.length 
+                    ? closureLines.map(c => {
+                        const parts = c.split(" – ");
+                        return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 8px 0;"><tr><td bgcolor="#fff3cd" style="padding: 10px 15px; border-left: 4px solid #ffc107;"><strong>${parts[0]}</strong> – ${parts.slice(1).join(" – ")}</td></tr></table>`;
+                      }).join("")
+                    : `<ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">No road closures or major roadworks reported for this shift.</li></ul>`
+                  }
+                </td>
+              </tr>
+            </table>
+
+            <!-- Duty Manager -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 20px 0;">
+              <tr>
+                <td bgcolor="#f0f8f4" style="padding: 15px 20px; border: 2px solid #007A33; border-left: 6px solid #007A33;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td width="100" style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #007A33; vertical-align: top;"><strong>Duty Manager:</strong></td>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager.name || "Not set"}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #007A33; vertical-align: top;"><strong>Callsign:</strong></td>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager.callsign || "Not set"}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #007A33; vertical-align: top;"><strong>Contact:</strong></td>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager.number || "Not set"}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #007A33; vertical-align: top;"><strong>Email:</strong></td>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager.email || "Not set"}</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Fleet Movements -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px;">
+              <tr>
+                <td>
+                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; color: #007A33; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px;">Fleet Movements</h2>
+                  <ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${fleetText}</li></ul>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Additional Information -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+              <tr>
+                <td>
+                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; color: #007A33; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px;">Additional Information</h2>
+                  <ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${otherText}</li></ul>
+                </td>
+              </tr>
+            </table>
+          </td>
         </tr>
+        
+        <!-- Footer -->
         <tr>
-          <td><strong>Contact:</strong></td>
-          <td>${manager.number || "Not set"}</td>
-        </tr>
-        <tr>
-          <td><strong>Email:</strong></td>
-          <td>${manager.email || "Not set"}</td>
+          <td bgcolor="#f8f9fa" style="padding: 15px 25px; border-top: 2px solid #e0e0e0; text-align: center;">
+            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 12px; color: #666666; margin: 0;">Taranaki Area Management Team • St John New Zealand</p>
+          </td>
         </tr>
       </table>
-    </div>
-
-    <div class="briefing-section">
-      <h2 class="section-title">Fleet Movements</h2>
-      <div class="section-content">
-        <ul><li>${fleetText}</li></ul>
-      </div>
-    </div>
-
-    <div class="briefing-section">
-      <h2 class="section-title">Additional Information</h2>
-      <div class="section-content">
-        <ul><li>${otherText}</li></ul>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer">
-    <p>Taranaki Area Management Team • St John New Zealand</p>
-  </div>
-</div>`;
+    </td>
+  </tr>
+</table>`;
 }
 
 async function copyEmail(){
@@ -1270,6 +1218,10 @@ document.querySelectorAll("input,textarea,select").forEach(e => {
 taskDay.addEventListener("change", () => {
   renderTasks();
   updateTaskDisplay();
+});
+
+taskShift.addEventListener("change", () => {
+  renderTasks();
 });
 
 // Initialize - Load data from API or localStorage
