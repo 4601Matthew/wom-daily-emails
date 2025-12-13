@@ -7,98 +7,209 @@
 
 <style>
 body {
-  background:#f2f2f2;
-  font-family: Helvetica, Arial, sans-serif;
-  padding:16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  padding: 20px;
+  min-height: 100vh;
 }
 
 .container {
-  max-width:1200px;
-  margin:auto;
-  display:grid;
-  grid-template-columns:420px 1fr;
-  gap:16px;
+  max-width: 1400px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 450px 1fr;
+  gap: 20px;
 }
 
 .card {
-  background:#fff;
-  border-radius:8px;
-  padding:14px;
-  box-shadow:0 2px 6px rgba(0,0,0,.1);
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+  border: 2px solid rgba(255,255,255,.3);
+}
+
+.builder-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.builder-card h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 20px;
+  border-bottom: 2px solid #007A33;
+  padding-bottom: 8px;
 }
 
 label {
-  font-weight:700;
-  font-size:12px;
-  display:block;
-  margin-top:10px;
+  font-weight: 600;
+  font-size: 13px;
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  color: #444;
 }
 
 input, textarea, select {
-  width:100%;
-  padding:7px;
-  border-radius:6px;
-  border:1px solid #ccc;
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 2px solid #ddd;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
 }
 
-textarea { resize:vertical; min-height:60px; }
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #007A33;
+}
+
+textarea { 
+  resize: vertical; 
+  min-height: 70px; 
+  font-family: inherit;
+}
 
 button {
-  margin-top:8px;
-  padding:6px 10px;
-  border-radius:6px;
-  border:none;
-  font-weight:700;
-  cursor:pointer;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
 }
 
-.primary { background:#007A33; color:#fff; }
-.secondary { background:#111; color:#fff; }
-.danger { background:#b42318; color:#fff; }
-.small { font-size:12px; padding:4px 6px; }
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+
+.primary { background: #007A33; color: #fff; }
+.primary:hover { background: #006028; }
+
+.secondary { background: #333; color: #fff; }
+.secondary:hover { background: #222; }
+
+.danger { background: #b42318; color: #fff; }
+.danger:hover { background: #9a1d14; }
+
+.small { font-size: 12px; padding: 6px 10px; }
 
 .preview {
-  background:#f4f4f4;
-  padding:16px;
-  border-radius:8px;
+  background: #f8f9fa;
+  padding: 24px;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  min-height: 400px;
 }
 
 .email-box {
-  border:1px solid #ddd;
-  border-radius:6px;
-  padding:12px;
+  border: 3px solid #007A33;
+  border-radius: 8px;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
 }
 
 .manager-box {
-  border:1px solid #ddd;
-  border-left:4px solid #007A33;
-  border-radius:6px;
-  padding:12px;
-  margin-top:12px;
+  border: 3px solid #007A33;
+  border-left: 6px solid #007A33;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+  background: #f0f8f4;
 }
 
-.row { display:flex; gap:6px; align-items:center; margin-top:6px; }
+.row { 
+  display: flex; 
+  gap: 8px; 
+  align-items: center; 
+  margin-top: 8px; 
+}
+
+.crewing-row {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.crewing-row label {
+  margin: 0;
+  font-size: 13px;
+}
 
 .modal {
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.5);
-  display:none;
-  align-items:center;
-  justify-content:center;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .modal-content {
-  background:#fff;
-  border-radius:8px;
-  padding:16px;
-  width:900px;
-  max-width:95%;
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 900px;
+  max-width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3);
 }
 
-.hidden { display:none; }
+.modal-content h3 {
+  margin-top: 0;
+  color: #007A33;
+  border-bottom: 2px solid #007A33;
+  padding-bottom: 8px;
+}
 
-@media(max-width:900px){
+.tab-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.hidden { display: none; }
+
+.shift-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.comment-field {
+  margin-top: 8px;
+}
+
+.closure-item {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  margin-top: 8px;
+}
+
+.closure-item .row {
+  margin-top: 8px;
+}
+
+.closure-item input {
+  margin-top: 4px;
+}
+
+@media(max-width: 1000px){
   .container{grid-template-columns:1fr;}
 }
 </style>
@@ -109,57 +220,75 @@ button {
 <div class="container">
 
 <!-- BUILDER -->
-<div class="card">
-  <h3>Duty Email Builder</h3>
+<div class="card builder-card">
+  <h3>📋 Duty Email Builder</h3>
 
-  <label>Day</label>
-  <select id="day"></select>
+  <label>📅 Day & Shift</label>
+  <div class="shift-selector">
+    <select id="day"></select>
+    <select id="shift">
+      <option value="Day">Day Shift</option>
+      <option value="Night">Night Shift</option>
+    </select>
+  </div>
 
-  <label>Greeting</label>
-  <input id="greeting" value="Good Morning">
+  <label>💬 Greeting Comment (Optional)</label>
+  <textarea id="greetingComment" placeholder="Add any additional comments after the greeting..."></textarea>
 
-  <label>Extra Tasks</label>
-  <textarea id="extraTasks"></textarea>
+  <label>✅ Tasks</label>
+  <div id="taskDisplay" style="background: #f8f9fa; padding: 12px; border-radius: 6px; min-height: 40px; font-size: 13px; color: #666;">
+    Configure tasks in Settings
+  </div>
 
-  <label>Crewing (tick fully crewed)</label>
+  <label>➕ Extra Tasks</label>
+  <textarea id="extraTasks" placeholder="Add additional tasks (one per line)"></textarea>
+
+  <label>🚑 Crewing Status</label>
   <div id="crewingChecks"></div>
 
-  <label>Crewing Notes</label>
-  <textarea id="crewingNotes"></textarea>
+  <label>📝 Crewing Notes</label>
+  <textarea id="crewingNotes" placeholder="Additional crewing notes..."></textarea>
 
-  <label>Road Closures</label>
+  <label>🛣️ Road Closures</label>
   <div id="closures"></div>
-  <button class="small primary" onclick="addClosure()">➕ Add Road Closure</button>
+  <div style="display: flex; gap: 8px; margin-top: 8px;">
+    <button class="small primary" onclick="openPlannedClosures()">📅 Plan Road Closures</button>
+    <button class="small primary" onclick="addClosure()">➕ Add Road Closure</button>
+  </div>
 
-  <label>Fleet Movements</label>
-  <textarea id="fleet">No fleet movements this shift.</textarea>
+  <label>👤 Duty Manager</label>
+  <select id="dutyManager"></select>
 
-  <label>Other</label>
-  <textarea id="other">Nothing extra to report.</textarea>
+  <label>🚗 Fleet Movements</label>
+  <textarea id="fleet" placeholder="Enter fleet movements or leave empty for default message"></textarea>
 
-  <div class="row">
-    <button class="primary" onclick="copyEmail()">Copy Email</button>
-    <button class="secondary" onclick="openSettings()">⚙ Settings</button>
+  <label>📌 Other</label>
+  <textarea id="other" placeholder="Enter other notes or leave empty for default message"></textarea>
+
+  <div class="row" style="margin-top: 16px;">
+    <button class="primary" onclick="copyEmail()">📋 Copy Email</button>
+    <button class="secondary" onclick="openSettings()">⚙️ Settings</button>
   </div>
 </div>
 
 <!-- PREVIEW -->
 <div class="card">
-  <h3>Email Preview</h3>
+  <h3>📧 Email Preview</h3>
   <div id="preview" class="preview"></div>
 </div>
 
 </div>
 
-<!-- SETTINGS -->
+<!-- SETTINGS MODAL -->
 <div class="modal" id="settings">
   <div class="modal-content">
-    <h3>Settings</h3>
+    <h3>⚙️ Settings</h3>
 
-    <div class="row">
-      <button class="primary small" onclick="showTab('callsignTab')">Callsigns</button>
-      <button class="primary small" onclick="showTab('tasksTab')">Tasks by Day</button>
-      <button class="danger small" onclick="closeSettings()">Close</button>
+    <div class="tab-buttons">
+      <button class="primary small" onclick="showTab('callsignTab')">🚑 Callsigns</button>
+      <button class="primary small" onclick="showTab('tasksTab')">✅ Tasks by Day</button>
+      <button class="primary small" onclick="showTab('managersTab')">👤 Duty Managers</button>
+      <button class="danger small" onclick="closeSettings()">❌ Close</button>
     </div>
 
     <!-- CALLSIGNS -->
@@ -171,47 +300,97 @@ button {
 
     <!-- TASKS -->
     <div id="tasksTab" class="hidden">
-      <label>Day</label>
+      <h4>Tasks by Day</h4>
+      <label>Select Day</label>
       <select id="taskDay"></select>
-      <div id="taskList"></div>
-      <button class="small primary" onclick="addTask()">➕ Add Task</button>
+      <div id="taskList" style="margin-top: 12px;"></div>
+      <button class="small primary" onclick="addTask()" style="margin-top: 8px;">➕ Add Task</button>
+    </div>
+
+    <!-- DUTY MANAGERS -->
+    <div id="managersTab" class="hidden">
+      <h4>Duty Managers</h4>
+      <div id="managerList"></div>
+      <button class="small primary" onclick="addManager()">➕ Add Manager</button>
     </div>
 
   </div>
 </div>
 
+<!-- PLANNED CLOSURES MODAL -->
+<div class="modal" id="plannedClosuresModal">
+  <div class="modal-content">
+    <h3>📅 Planned Road Closures</h3>
+    <div id="plannedClosuresList"></div>
+    <button class="small primary" onclick="addPlannedClosure()">➕ Add Planned Closure</button>
+    <button class="danger small" onclick="closePlannedClosures()" style="margin-left: 8px;">❌ Close</button>
+  </div>
+</div>
+
 <script>
 /* ---------- DATA ---------- */
-const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 let callsigns = JSON.parse(localStorage.getItem("callsigns")) || ["MIKE52","PAPA21"];
 let dayTasks = JSON.parse(localStorage.getItem("dayTasks")) || Object.fromEntries(days.map(d=>[d,[]]));
+let dutyManagers = JSON.parse(localStorage.getItem("dutyManagers")) || [
+  {
+    name: "Matthew Zimmerman",
+    callsign: "MIKE52",
+    number: "027 214 1929",
+    email: "TaranakiDutyWom@stjohn.org.nz"
+  }
+];
+let plannedClosures = JSON.parse(localStorage.getItem("plannedClosures")) || [];
+let crewingStatus = JSON.parse(localStorage.getItem("crewingStatus")) || {};
 
 /* ---------- INIT ---------- */
 days.forEach(d=>{
-  day.innerHTML+=`<option>${d}</option>`;
-  taskDay.innerHTML+=`<option>${d}</option>`;
+  day.innerHTML += `<option>${d}</option>`;
+  taskDay.innerHTML += `<option>${d}</option>`;
 });
-day.value=new Date().toLocaleDateString("en-NZ",{weekday:"long"});
+
+// Set current day
+const today = new Date().toLocaleDateString("en-NZ",{weekday:"long"});
+day.value = today;
+
+// Set default shift based on time
+const hour = new Date().getHours();
+shift.value = (hour >= 6 && hour < 18) ? "Day" : "Night";
+
+// Initialize duty manager dropdown
+updateManagerDropdown();
+updateTaskDisplay();
 
 /* ---------- SETTINGS ---------- */
-function openSettings(){ settings.style.display="flex"; renderSettings(); }
-function closeSettings(){ settings.style.display="none"; }
+function openSettings(){ 
+  settings.style.display = "flex"; 
+  renderSettings(); 
+}
+
+function closeSettings(){ 
+  settings.style.display = "none"; 
+}
+
 function showTab(id){
   callsignTab.classList.add("hidden");
   tasksTab.classList.add("hidden");
+  managersTab.classList.add("hidden");
   document.getElementById(id).classList.remove("hidden");
 }
 
 function renderSettings(){
-  callsignList.innerHTML="";
+  // Render callsigns
+  callsignList.innerHTML = "";
   callsigns.forEach((c,i)=>{
-    callsignList.innerHTML+=`
+    callsignList.innerHTML += `
       <div class="row">
         <input value="${c}" onchange="callsigns[${i}]=this.value;saveSettings()">
         <button class="danger small" onclick="callsigns.splice(${i},1);saveSettings()">➖</button>
       </div>`;
   });
+  
   renderTasks();
+  renderManagers();
   renderCrewingChecks();
 }
 
@@ -221,9 +400,11 @@ function addCallsign(){
 }
 
 function renderTasks(){
-  taskList.innerHTML="";
+  taskList.innerHTML = "";
+  if (!dayTasks[taskDay.value]) dayTasks[taskDay.value] = [];
+  
   dayTasks[taskDay.value].forEach((t,i)=>{
-    taskList.innerHTML+=`
+    taskList.innerHTML += `
       <div class="row">
         <input value="${t}" onchange="dayTasks['${taskDay.value}'][${i}]=this.value;saveSettings()">
         <button class="danger small" onclick="dayTasks['${taskDay.value}'].splice(${i},1);saveSettings()">➖</button>
@@ -232,34 +413,199 @@ function renderTasks(){
 }
 
 function addTask(){
+  if (!dayTasks[taskDay.value]) dayTasks[taskDay.value] = [];
   dayTasks[taskDay.value].push("");
   saveSettings();
 }
 
+function updateTaskDisplay(){
+  const currentTasks = dayTasks[day.value] || [];
+  if (currentTasks.length > 0) {
+    taskDisplay.innerHTML = currentTasks.map(t => `• ${t}`).join("<br>");
+  } else {
+    taskDisplay.innerHTML = "No tasks configured for this day. Add them in Settings.";
+  }
+}
+
+function renderManagers(){
+  managerList.innerHTML = "";
+  dutyManagers.forEach((m,i)=>{
+    managerList.innerHTML += `
+      <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-top: 8px;">
+        <div class="row">
+          <input placeholder="Name" value="${m.name}" onchange="dutyManagers[${i}].name=this.value;saveSettings()">
+        </div>
+        <div class="row">
+          <input placeholder="Callsign" value="${m.callsign}" onchange="dutyManagers[${i}].callsign=this.value;saveSettings()">
+        </div>
+        <div class="row">
+          <input placeholder="Number" value="${m.number}" onchange="dutyManagers[${i}].number=this.value;saveSettings()">
+        </div>
+        <div class="row">
+          <input placeholder="Email" value="${m.email}" onchange="dutyManagers[${i}].email=this.value;saveSettings()">
+        </div>
+        <button class="danger small" onclick="dutyManagers.splice(${i},1);saveSettings()">➖ Remove</button>
+      </div>`;
+  });
+}
+
+function addManager(){
+  dutyManagers.push({
+    name: "",
+    callsign: "",
+    number: "",
+    email: ""
+  });
+  saveSettings();
+}
+
+function updateManagerDropdown(){
+  dutyManager.innerHTML = "";
+  dutyManagers.forEach((m,i)=>{
+    dutyManager.innerHTML += `<option value="${i}">${m.name || 'Unnamed'} (${m.callsign || 'No callsign'})</option>`;
+  });
+}
+
 function saveSettings(){
-  localStorage.setItem("callsigns",JSON.stringify(callsigns));
-  localStorage.setItem("dayTasks",JSON.stringify(dayTasks));
+  localStorage.setItem("callsigns", JSON.stringify(callsigns));
+  localStorage.setItem("dayTasks", JSON.stringify(dayTasks));
+  localStorage.setItem("dutyManagers", JSON.stringify(dutyManagers));
   renderSettings();
+  updateManagerDropdown();
+  updateTaskDisplay();
   render();
 }
 
 /* ---------- CREWING ---------- */
 function renderCrewingChecks(){
-  crewingChecks.innerHTML="";
+  crewingChecks.innerHTML = "";
   callsigns.forEach(c=>{
-    crewingChecks.innerHTML+=`
-      <div class="row">
-        <input type="checkbox" data-call="${c}" checked>
-        ${c}
+    const status = crewingStatus[c] || "fully";
+    crewingChecks.innerHTML += `
+      <div class="crewing-row">
+        <label>${c}</label>
+        <select data-call="${c}" onchange="crewingStatus['${c}']=this.value;localStorage.setItem('crewingStatus',JSON.stringify(crewingStatus));render()">
+          <option value="fully" ${status==="fully"?"selected":""}>Fully Crewed</option>
+          <option value="single" ${status==="single"?"selected":""}>Single Crewed</option>
+          <option value="uncrewed" ${status==="uncrewed"?"selected":""}>Uncrewed</option>
+        </select>
       </div>`;
   });
 }
 
 /* ---------- ROAD CLOSURES ---------- */
+function openPlannedClosures(){
+  plannedClosuresModal.style.display = "flex";
+  renderPlannedClosures();
+}
+
+function closePlannedClosures(){
+  plannedClosuresModal.style.display = "none";
+  checkPlannedClosures();
+  render();
+}
+
+function renderPlannedClosures(){
+  plannedClosuresList.innerHTML = "";
+  plannedClosures.forEach((closure,i)=>{
+    const startDate = closure.startDate || "";
+    const endDate = closure.endDate || "";
+    plannedClosuresList.innerHTML += `
+      <div class="closure-item">
+        <div class="row">
+          <input type="date" placeholder="Start Date" value="${startDate}" onchange="plannedClosures[${i}].startDate=this.value;savePlannedClosures()">
+          <input type="date" placeholder="End Date" value="${endDate}" onchange="plannedClosures[${i}].endDate=this.value;savePlannedClosures()">
+        </div>
+        <div class="row">
+          <select onchange="plannedClosures[${i}].shiftType=this.value;savePlannedClosures()">
+            <option value="Day" ${closure.shiftType==="Day"?"selected":""}>Day Shift</option>
+            <option value="Night" ${closure.shiftType==="Night"?"selected":""}>Night Shift</option>
+            <option value="All" ${closure.shiftType==="All"?"selected":""}>All Shifts</option>
+          </select>
+        </div>
+        <div class="row">
+          <input placeholder="Road name" value="${closure.roadName || ""}" onchange="plannedClosures[${i}].roadName=this.value;savePlannedClosures()">
+        </div>
+        <div class="row">
+          <input placeholder="Type" value="${closure.type || ""}" onchange="plannedClosures[${i}].type=this.value;savePlannedClosures()">
+        </div>
+        <div class="row">
+          <input placeholder="Closure info" value="${closure.closureInfo || ""}" onchange="plannedClosures[${i}].closureInfo=this.value;savePlannedClosures()">
+        </div>
+        <div class="row">
+          <input placeholder="Detour" value="${closure.detour || ""}" onchange="plannedClosures[${i}].detour=this.value;savePlannedClosures()">
+        </div>
+        <button class="danger small" onclick="plannedClosures.splice(${i},1);savePlannedClosures()">➖ Remove</button>
+      </div>`;
+  });
+}
+
+function addPlannedClosure(){
+  plannedClosures.push({
+    startDate: "",
+    endDate: "",
+    shiftType: "All",
+    roadName: "",
+    type: "",
+    closureInfo: "",
+    detour: ""
+  });
+  savePlannedClosures();
+}
+
+function savePlannedClosures(){
+  localStorage.setItem("plannedClosures", JSON.stringify(plannedClosures));
+  renderPlannedClosures();
+}
+
+function checkPlannedClosures(){
+  const today = new Date();
+  const currentDay = day.value;
+  const currentShift = shift.value;
+  const todayStr = today.toISOString().split('T')[0];
+  
+  plannedClosures.forEach(closure => {
+    if (!closure.startDate || !closure.endDate) return;
+    
+    const startDate = new Date(closure.startDate);
+    const endDate = new Date(closure.endDate);
+    endDate.setHours(23, 59, 59);
+    
+    if (today >= startDate && today <= endDate) {
+      const shiftMatch = closure.shiftType === "All" || 
+                        closure.shiftType === currentShift;
+      
+      if (shiftMatch) {
+        // Check if already added
+        const alreadyAdded = [...closures.children].some(item => {
+          const inputs = [...item.querySelectorAll("input")];
+          return inputs[0]?.value === closure.roadName;
+        });
+        
+        if (!alreadyAdded) {
+          addClosureFromPlanned(closure);
+        }
+      }
+    }
+  });
+}
+
+function addClosureFromPlanned(closure){
+  const d = document.createElement("div");
+  d.className = "closure-item";
+  d.innerHTML = `
+    <input placeholder="Road name" value="${closure.roadName || ""}">
+    <input placeholder="Type" value="${closure.type || ""}">
+    <input placeholder="Closure info" value="${closure.closureInfo || ""}">
+    <input placeholder="Detour" value="${closure.detour || ""}">
+    <button class="danger small" onclick="this.parentElement.remove();render()">➖</button>`;
+  closures.appendChild(d);
+}
+
 function addClosure(){
-  const d=document.createElement("div");
-  d.className="row";
-  d.innerHTML=`
+  const d = document.createElement("div");
+  d.className = "closure-item";
+  d.innerHTML = `
     <input placeholder="Road name">
     <input placeholder="Type">
     <input placeholder="Closure info">
@@ -270,82 +616,133 @@ function addClosure(){
 
 /* ---------- RENDER ---------- */
 function render(){
-  const taskListFinal=[
-    ...dayTasks[day.value],
+  // Get greeting based on shift
+  const greeting = shift.value === "Night" ? "Good Evening" : "Good Morning";
+  const welcomeText = shift.value === "Night" 
+    ? `Welcome to ${day.value} night!` 
+    : `Welcome to ${day.value}!`;
+  
+  const greetingComment = document.getElementById("greetingComment").value.trim();
+  
+  // Tasks
+  const taskListFinal = [
+    ...(dayTasks[day.value] || []),
     ...extraTasks.value.split("\n").filter(Boolean)
   ];
-
-  const crewBoxes=[...document.querySelectorAll("[data-call]")];
-  const fullyCrewed=crewBoxes.every(c=>c.checked);
-
-  let crewingHTML = fullyCrewed
-    ? "<p>All vehicles are fully crewed.</p>"
-    : `<ul>${
-        crewBoxes.filter(c=>!c.checked)
-          .map(c=>`<li>${c.dataset.call} is not fully crewed.</li>`).join("")
-      }</ul>`;
-
-  const notes=crewingNotes.value.split("\n").filter(Boolean);
-  if(notes.length) crewingHTML+=`<ul>${notes.map(n=>`<li>${n}</li>`).join("")}</ul>`;
-
-  const closureLines=[...closures.children].map(r=>{
-    const v=[...r.querySelectorAll("input")].map(i=>i.value);
-    return v.every(Boolean)?`${v[0]} – ${v[1]} – ${v[2]} – ${v[3]}`:null;
+  
+  // Crewing
+  const crewStatuses = callsigns.map(c => ({
+    callsign: c,
+    status: crewingStatus[c] || "fully"
+  }));
+  
+  const fullyCrewed = crewStatuses.every(c => c.status === "fully");
+  const singleCrewed = crewStatuses.filter(c => c.status === "single");
+  const uncrewed = crewStatuses.filter(c => c.status === "uncrewed");
+  
+  let crewingHTML = "";
+  if (fullyCrewed && singleCrewed.length === 0 && uncrewed.length === 0) {
+    crewingHTML = "<ul><li>All vehicles are fully crewed.</li></ul>";
+  } else {
+    crewingHTML = "<ul>";
+    singleCrewed.forEach(c => {
+      crewingHTML += `<li>${c.callsign} is single crewed.</li>`;
+    });
+    uncrewed.forEach(c => {
+      crewingHTML += `<li>${c.callsign} is uncrewed.</li>`;
+    });
+    crewingHTML += "</ul>";
+  }
+  
+  const notes = crewingNotes.value.split("\n").filter(Boolean);
+  if (notes.length) {
+    crewingHTML += `<ul>${notes.map(n => `<li>${n}</li>`).join("")}</ul>`;
+  }
+  
+  // Road closures
+  const closureLines = [...closures.children].map(r => {
+    const v = [...r.querySelectorAll("input")].map(i => i.value);
+    return v.every(Boolean) ? `${v[0]} – ${v[1]} – ${v[2]} – ${v[3]}` : null;
   }).filter(Boolean);
-
-  preview.innerHTML=`
-    <div>
-      <div class="email-box">
-        <p><strong>${greeting.value}</strong><br>Welcome to ${day.value}!</p>
-
-        <strong>Tasks</strong>
-        <ul>${taskListFinal.map(t=>`<li>${t}</li>`).join("")}</ul>
-
-        <strong>Crewing</strong>
-        ${crewingHTML}
-
-        <strong>Road Closures</strong>
-        ${
-          closureLines.length
-            ? `<ul>${closureLines.map(c=>`<li>${c}</li>`).join("")}</ul>`
-            : `<p>No road closures / major roadworks reported for this shift</p>`
-        }
-
-        <strong>Fleet Movements</strong>
-        <ul><li>${fleet.value}</li></ul>
-
-        <strong>Other</strong>
-        <ul><li>${other.value}</li></ul>
-      </div>
-
+  
+  // Duty Manager
+  const managerIndex = parseInt(dutyManager.value) || 0;
+  const manager = dutyManagers[managerIndex] || dutyManagers[0] || {};
+  
+  // Fleet Movements
+  const fleetText = fleet.value.trim() || "No fleet movements this shift.";
+  
+  // Other
+  const otherText = other.value.trim() || "Nothing extra to report.";
+  
+  preview.innerHTML = `
+    <div class="email-box">
+      <p><strong>${greeting}</strong><br>${welcomeText}</p>
+      ${greetingComment ? `<p>${greetingComment}</p>` : ""}
+      
+      <strong>✅ Tasks</strong>
+      <ul>${taskListFinal.map(t => `<li>${t}</li>`).join("")}</ul>
+      
+      <strong>🚑 Crewing</strong>
+      ${crewingHTML}
+      
+      <strong>🛣️ Road Closures</strong>
+      ${closureLines.length 
+        ? `<ul>${closureLines.map(c => `<li>${c}</li>`).join("")}</ul>`
+        : `<ul><li>No road closures / major roadworks reported for this shift</li></ul>`
+      }
+      
       <div class="manager-box">
-        <strong>Duty Manager</strong>
+        <strong>👤 Duty Manager</strong>
         <ul>
-          <li>Name: Matthew Zimmerman</li>
-          <li>Callsign: MIKE52</li>
-          <li>Number: 027 214 1929</li>
-          <li>Email: TaranakiDutyWom@stjohn.org.nz</li>
+          <li>Name: ${manager.name || "Not set"}</li>
+          <li>Callsign: ${manager.callsign || "Not set"}</li>
+          <li>Number: ${manager.number || "Not set"}</li>
+          <li>Email: ${manager.email || "Not set"}</li>
         </ul>
       </div>
+      
+      <strong>🚗 Fleet Movements</strong>
+      <ul><li>${fleetText}</li></ul>
+      
+      <strong>📌 Other</strong>
+      <ul><li>${otherText}</li></ul>
     </div>`;
 }
 
 function copyEmail(){
   render();
-  const r=document.createRange();
-  r.selectNode(preview);
-  const s=window.getSelection();
-  s.removeAllRanges(); s.addRange(r);
-  document.execCommand("copy");
-  s.removeAllRanges();
-  alert("Copied for Outlook Web.");
+  setTimeout(() => {
+    const r = document.createRange();
+    r.selectNode(preview);
+    const s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(r);
+    document.execCommand("copy");
+    s.removeAllRanges();
+    alert("✅ Copied for Outlook Web!");
+  }, 100);
 }
 
 /* ---------- EVENTS ---------- */
-document.querySelectorAll("input,textarea,select").forEach(e=>e.addEventListener("input",render));
-taskDay.onchange=renderTasks;
+document.querySelectorAll("input,textarea,select").forEach(e => {
+  e.addEventListener("input", () => {
+    if (e.id === "day" || e.id === "shift") {
+      checkPlannedClosures();
+      updateTaskDisplay();
+    }
+    render();
+  });
+});
 
+taskDay.addEventListener("change", () => {
+  renderTasks();
+  updateTaskDisplay();
+});
+
+// Initialize
 renderCrewingChecks();
+checkPlannedClosures();
 render();
 </script>
 
