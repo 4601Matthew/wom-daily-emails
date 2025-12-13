@@ -413,6 +413,7 @@ button:hover {
       <button class="primary small" onclick="showTab('callsignTab')">🚑 Callsigns</button>
       <button class="primary small" onclick="showTab('tasksTab')">✅ Tasks by Day</button>
       <button class="primary small" onclick="showTab('managersTab')">👤 Duty Managers</button>
+      <button class="primary" onclick="saveSettingsWithFeedback(this)" style="margin-left: auto;">💾 Save Settings</button>
       <button class="danger small" onclick="closeSettings()">❌ Close</button>
     </div>
 
@@ -612,8 +613,8 @@ function renderSettings(){
   callsigns.forEach((c,i)=>{
     callsignList.innerHTML += `
       <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'};">
-        <input value="${c}" onchange="callsigns[${i}]=this.value;saveSettings()">
-        <button class="danger small" onclick="callsigns.splice(${i},1);saveSettings()">➖</button>
+        <input value="${c}" onchange="callsigns[${i}]=this.value">
+        <button class="danger small" onclick="callsigns.splice(${i},1);renderSettings()">➖</button>
       </div>`;
   });
   
@@ -624,7 +625,7 @@ function renderSettings(){
 
 function addCallsign(){
   callsigns.push("");
-  saveSettings();
+  renderSettings();
 }
 
 function renderTasks(){
@@ -634,8 +635,8 @@ function renderTasks(){
   dayTasks[taskDay.value].forEach((t,i)=>{
     taskList.innerHTML += `
       <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'};">
-        <input value="${t}" onchange="dayTasks['${taskDay.value}'][${i}]=this.value;saveSettings()">
-        <button class="danger small" onclick="dayTasks['${taskDay.value}'].splice(${i},1);saveSettings()">➖</button>
+        <input value="${t}" onchange="dayTasks['${taskDay.value}'][${i}]=this.value">
+        <button class="danger small" onclick="dayTasks['${taskDay.value}'].splice(${i},1);renderTasks()">➖</button>
       </div>`;
   });
 }
@@ -643,7 +644,7 @@ function renderTasks(){
 function addTask(){
   if (!dayTasks[taskDay.value]) dayTasks[taskDay.value] = [];
   dayTasks[taskDay.value].push("");
-  saveSettings();
+  renderTasks();
 }
 
 function updateTaskDisplay(){
@@ -661,15 +662,15 @@ function renderManagers(){
     managerList.innerHTML += `
       <div class="manager-item">
         <div class="manager-fields">
-          <input placeholder="Name" value="${m.name}" onchange="dutyManagers[${i}].name=this.value;saveSettings()">
-          <input placeholder="Callsign" value="${m.callsign}" onchange="dutyManagers[${i}].callsign=this.value;saveSettings()">
+          <input placeholder="Name" value="${m.name}" onchange="dutyManagers[${i}].name=this.value">
+          <input placeholder="Callsign" value="${m.callsign}" onchange="dutyManagers[${i}].callsign=this.value">
         </div>
         <div class="manager-fields">
-          <input placeholder="Number" value="${m.number}" onchange="dutyManagers[${i}].number=this.value;saveSettings()">
-          <input placeholder="Email" value="${m.email}" onchange="dutyManagers[${i}].email=this.value;saveSettings()">
+          <input placeholder="Number" value="${m.number}" onchange="dutyManagers[${i}].number=this.value">
+          <input placeholder="Email" value="${m.email}" onchange="dutyManagers[${i}].email=this.value">
         </div>
         <div style="margin-top: 8px;">
-          <button class="danger small" onclick="dutyManagers.splice(${i},1);saveSettings()">➖ Remove</button>
+          <button class="danger small" onclick="dutyManagers.splice(${i},1);renderManagers()">➖ Remove</button>
         </div>
       </div>`;
   });
@@ -682,7 +683,7 @@ function addManager(){
     number: "",
     email: ""
   });
-  saveSettings();
+  renderManagers();
 }
 
 function updateManagerDropdown(){
@@ -698,6 +699,37 @@ async function saveSettings(){
   updateManagerDropdown();
   updateTaskDisplay();
   render();
+}
+
+async function saveSettingsWithFeedback(button){
+  const saveButton = button || document.querySelector('button[onclick*="saveSettingsWithFeedback"]');
+  if (!saveButton) return;
+  
+  const originalText = saveButton.textContent;
+  
+  saveButton.disabled = true;
+  saveButton.textContent = "💾 Saving...";
+  
+  try {
+    await saveSettings();
+    saveButton.textContent = "✅ Saved!";
+    saveButton.style.background = "#28a745";
+    
+    setTimeout(() => {
+      saveButton.textContent = originalText;
+      saveButton.style.background = "";
+      saveButton.disabled = false;
+    }, 2000);
+  } catch (error) {
+    saveButton.textContent = "❌ Error";
+    saveButton.style.background = "#dc3545";
+    
+    setTimeout(() => {
+      saveButton.textContent = originalText;
+      saveButton.style.background = "";
+      saveButton.disabled = false;
+    }, 2000);
+  }
 }
 
 /* ---------- CREWING ---------- */
