@@ -455,20 +455,125 @@ button:hover {
 </div>
 
 <script>
-/* ---------- DATA ---------- */
+/* ---------- CONFIGURATION ---------- */
+// Set this to your Cloudflare Worker URL after deployment
+// Example: "https://wom-daily-emails-api.your-account.workers.dev"
+const API_BASE_URL = ""; // Leave empty to use localStorage only, or set your Worker URL
+
+/* ---------- DATA STORAGE ---------- */
 const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-let callsigns = JSON.parse(localStorage.getItem("callsigns")) || ["MIKE52","PAPA21"];
-let dayTasks = JSON.parse(localStorage.getItem("dayTasks")) || Object.fromEntries(days.map(d=>[d,[]]));
-let dutyManagers = JSON.parse(localStorage.getItem("dutyManagers")) || [
-  {
+
+// Default data
+const defaultData = {
+  callsigns: ["MIKE52","PAPA21"],
+  dayTasks: Object.fromEntries(days.map(d=>[d,[]])),
+  dutyManagers: [{
     name: "Matthew Zimmerman",
     callsign: "MIKE52",
     number: "027 214 1929",
     email: "TaranakiDutyWom@stjohn.org.nz"
+  }],
+  plannedClosures: [],
+  crewingStatus: {},
+  temporaryClosures: []
+};
+
+let callsigns = [...defaultData.callsigns];
+let dayTasks = {...defaultData.dayTasks};
+let dutyManagers = [...defaultData.dutyManagers];
+let plannedClosures = [...defaultData.plannedClosures];
+let crewingStatus = {...defaultData.crewingStatus};
+
+/* ---------- API FUNCTIONS ---------- */
+async function loadDataFromAPI() {
+  if (!API_BASE_URL) {
+    // Fallback to localStorage
+    loadDataFromLocalStorage();
+    return;
   }
-];
-let plannedClosures = JSON.parse(localStorage.getItem("plannedClosures")) || [];
-let crewingStatus = JSON.parse(localStorage.getItem("crewingStatus")) || {};
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/data`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data && Object.keys(data).length > 0) {
+        callsigns = data.callsigns || defaultData.callsigns;
+        dayTasks = data.dayTasks || defaultData.dayTasks;
+        dutyManagers = data.dutyManagers || defaultData.dutyManagers;
+        plannedClosures = data.plannedClosures || defaultData.plannedClosures;
+        crewingStatus = data.crewingStatus || defaultData.crewingStatus;
+        
+        // Save temporary closures if available
+        if (data.temporaryClosures) {
+          localStorage.setItem("temporaryClosures", JSON.stringify(data.temporaryClosures));
+        }
+        
+        // Also save to localStorage as backup
+        saveDataToLocalStorage();
+        return;
+      }
+    }
+  } catch (error) {
+    console.log("API load failed, using localStorage:", error);
+  }
+  
+  // Fallback to localStorage if API fails
+  loadDataFromLocalStorage();
+}
+
+async function saveDataToAPI() {
+  // Always save to localStorage as backup
+  saveDataToLocalStorage();
+  
+  if (!API_BASE_URL) return;
+
+  try {
+    const data = {
+      callsigns,
+      dayTasks,
+      dutyManagers,
+      plannedClosures,
+      crewingStatus,
+      temporaryClosures: getTemporaryClosuresData()
+    };
+    
+    await fetch(`${API_BASE_URL}/api/data`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  } catch (error) {
+    console.log("API save failed, data saved to localStorage only:", error);
+  }
+}
+
+function loadDataFromLocalStorage() {
+  callsigns = JSON.parse(localStorage.getItem("callsigns")) || defaultData.callsigns;
+  dayTasks = JSON.parse(localStorage.getItem("dayTasks")) || defaultData.dayTasks;
+  dutyManagers = JSON.parse(localStorage.getItem("dutyManagers")) || defaultData.dutyManagers;
+  plannedClosures = JSON.parse(localStorage.getItem("plannedClosures")) || defaultData.plannedClosures;
+  crewingStatus = JSON.parse(localStorage.getItem("crewingStatus")) || defaultData.crewingStatus;
+}
+
+function saveDataToLocalStorage() {
+  localStorage.setItem("callsigns", JSON.stringify(callsigns));
+  localStorage.setItem("dayTasks", JSON.stringify(dayTasks));
+  localStorage.setItem("dutyManagers", JSON.stringify(dutyManagers));
+  localStorage.setItem("plannedClosures", JSON.stringify(plannedClosures));
+  localStorage.setItem("crewingStatus", JSON.stringify(crewingStatus));
+}
+
+function getTemporaryClosuresData() {
+  return [...closures.children].map(item => {
+    const inputs = [...item.querySelectorAll("input")];
+    return {
+      roadName: inputs[0]?.value || "",
+      type: inputs[1]?.value || "",
+      closureInfo: inputs[2]?.value || "",
+      detour: inputs[3]?.value || ""
+    };
+  });
+}
 
 /* ---------- INIT ---------- */
 days.forEach(d=>{
@@ -483,10 +588,6 @@ day.value = today;
 // Set default shift based on time
 const hour = new Date().getHours();
 shift.value = (hour >= 6 && hour < 18) ? "Day" : "Night";
-
-// Initialize duty manager dropdown
-updateManagerDropdown();
-updateTaskDisplay();
 
 /* ---------- SETTINGS ---------- */
 function openSettings(){ 
@@ -591,10 +692,8 @@ function updateManagerDropdown(){
   });
 }
 
-function saveSettings(){
-  localStorage.setItem("callsigns", JSON.stringify(callsigns));
-  localStorage.setItem("dayTasks", JSON.stringify(dayTasks));
-  localStorage.setItem("dutyManagers", JSON.stringify(dutyManagers));
+async function saveSettings(){
+  await saveDataToAPI();
   renderSettings();
   updateManagerDropdown();
   updateTaskDisplay();
@@ -609,7 +708,7 @@ function renderCrewingChecks(){
     crewingChecks.innerHTML += `
       <div class="crewing-row">
         <label>${c}</label>
-        <select data-call="${c}" onchange="crewingStatus['${c}']=this.value;localStorage.setItem('crewingStatus',JSON.stringify(crewingStatus));render()">
+        <select data-call="${c}" onchange="crewingStatus['${c}']=this.value;saveDataToAPI();render()">
           <option value="fully" ${status==="fully"?"selected":""}>Fully Crewed</option>
           <option value="single" ${status==="single"?"selected":""}>Single Crewed</option>
           <option value="uncrewed" ${status==="uncrewed"?"selected":""}>Uncrewed</option>
@@ -676,8 +775,8 @@ function addPlannedClosure(){
   savePlannedClosures();
 }
 
-function savePlannedClosures(){
-  localStorage.setItem("plannedClosures", JSON.stringify(plannedClosures));
+async function savePlannedClosures(){
+  await saveDataToAPI();
   renderPlannedClosures();
 }
 
@@ -714,27 +813,46 @@ function checkPlannedClosures(){
 }
 
 function addClosureFromPlanned(closure){
+  addClosureFromData({
+    roadName: closure.roadName || "",
+    type: closure.type || "",
+    closureInfo: closure.closureInfo || "",
+    detour: closure.detour || ""
+  });
+  saveTemporaryClosures();
+}
+
+async function saveTemporaryClosures(){
+  const closureData = getTemporaryClosuresData();
+  localStorage.setItem("temporaryClosures", JSON.stringify(closureData));
+  await saveDataToAPI();
+}
+
+function loadTemporaryClosures(){
+  // Try to load from API data first (loaded in loadDataFromAPI)
+  // Fallback to localStorage
+  const saved = JSON.parse(localStorage.getItem("temporaryClosures")) || [];
+  closures.innerHTML = "";
+  saved.forEach(closure => {
+    addClosureFromData(closure);
+  });
+}
+
+function addClosureFromData(data = null){
   const d = document.createElement("div");
   d.className = "closure-item";
   d.innerHTML = `
-    <input placeholder="Road name" value="${closure.roadName || ""}">
-    <input placeholder="Type" value="${closure.type || ""}">
-    <input placeholder="Closure info" value="${closure.closureInfo || ""}">
-    <input placeholder="Detour" value="${closure.detour || ""}">
-    <button class="danger small" onclick="this.parentElement.remove();render()">➖</button>`;
+    <input placeholder="Road name" value="${data?.roadName || ""}" oninput="saveTemporaryClosures();render();">
+    <input placeholder="Type" value="${data?.type || ""}" oninput="saveTemporaryClosures();render();">
+    <input placeholder="Closure info" value="${data?.closureInfo || ""}" oninput="saveTemporaryClosures();render();">
+    <input placeholder="Detour" value="${data?.detour || ""}" oninput="saveTemporaryClosures();render();">
+    <button class="danger small" onclick="this.parentElement.remove();saveTemporaryClosures();render();">➖</button>`;
   closures.appendChild(d);
 }
 
 function addClosure(){
-  const d = document.createElement("div");
-  d.className = "closure-item";
-  d.innerHTML = `
-    <input placeholder="Road name">
-    <input placeholder="Type">
-    <input placeholder="Closure info">
-    <input placeholder="Detour">
-    <button class="danger small" onclick="this.parentElement.remove();render()">➖</button>`;
-  closures.appendChild(d);
+  addClosureFromData();
+  saveTemporaryClosures();
 }
 
 /* ---------- RENDER ---------- */
@@ -1107,10 +1225,16 @@ taskDay.addEventListener("change", () => {
   updateTaskDisplay();
 });
 
-// Initialize
-renderCrewingChecks();
-checkPlannedClosures();
-render();
+// Initialize - Load data from API or localStorage
+(async function init() {
+  await loadDataFromAPI();
+  updateManagerDropdown();
+  updateTaskDisplay();
+  renderCrewingChecks();
+  loadTemporaryClosures();
+  checkPlannedClosures();
+  render();
+})();
 </script>
 
 </body>

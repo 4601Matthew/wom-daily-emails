@@ -1,0 +1,9 @@
+name = "wom-daily-emails-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "DATA_STORE"
+id = "601912220b4a4061ba012b47380b2793"
+preview_id = "601912220b4a4061ba012b47380b2793"
+
