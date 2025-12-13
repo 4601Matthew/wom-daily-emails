@@ -456,9 +456,9 @@ button:hover {
 
 <script>
 /* ---------- CONFIGURATION ---------- */
-// Set this to your Cloudflare Worker URL after deployment
-// Example: "https://wom-daily-emails-api.your-account.workers.dev"
-const API_BASE_URL = ""; // Leave empty to use localStorage only, or set your Worker URL
+// Automatically detect the API URL based on current page location
+// For Pages Functions, the API is at /api/data relative to your Pages URL
+const API_BASE_URL = window.location.origin;
 
 /* ---------- DATA STORAGE ---------- */
 const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
