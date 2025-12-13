@@ -1227,8 +1227,8 @@ function render(){
     notFullyCrewed.forEach(c => {
       const status = crewingStatus[c] || "fully";
       let statusText = status === "single" ? "Single Crewed" : "Uncrewed";
-      let statusColor = status === "single" ? "#ff8c00" : "#dc3545"; // Orange for single, red for uncrewed
-      crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${c} - <font color="${statusColor}"><strong>${statusText}</strong></font></li>`;
+      let statusColor = status === "single" ? "rgb(255,140,0)" : "rgb(220,53,69)"; // Orange for single, red for uncrewed
+      crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${c} - <span style="color: ${statusColor};"><strong>${statusText}</strong></span></li>`;
     });
     crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">All other vehicles are fully crewed.</li>`;
     crewingHTMLFormatted += `</ul>`;
@@ -1247,8 +1247,8 @@ function render(){
         <!-- Header -->
         <tr>
           <td bgcolor="#007A33" style="padding: 20px 25px; border-bottom: 4px solid #004d20;">
-            <h1 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: 0.5px; line-height: 1.3;"><font color="#ffffff">DAILY SHIFT BRIEFING</font></h1>
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; margin: 0;"><font color="#ffffff">${day.value} ${shiftLabel} Shift • ${dateStr}</font></p>
+            <h1 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: 0.5px; line-height: 1.3; color: rgb(255,255,255);">DAILY SHIFT BRIEFING</h1>
+            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; margin: 0; color: rgb(255,255,255);">${day.value} ${shiftLabel} Shift • ${dateStr}</p>
           </td>
         </tr>
         
@@ -1259,7 +1259,7 @@ function render(){
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
               <tr>
                 <td bgcolor="#f8f9fa" style="padding: 15px 20px; border-left: 4px solid #007A33;">
-                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 4px 0;"><font color="#007A33"><strong>${greeting}</strong></font></p>
+                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 4px 0; color: rgb(0,122,51);"><strong>${greeting}</strong></p>
                   <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; color: #1a1a1a; margin: 4px 0;">${welcomeText}</p>
                   ${greetingComment ? `<p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; color: #1a1a1a; margin: 10px 0 4px 0; font-style: italic;">${greetingComment}</p>` : ""}
                 </td>
@@ -1270,7 +1270,7 @@ function render(){
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px;">
               <tr>
                 <td>
-                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px;"><font color="#007A33">Operational Tasks</font></h2>
+                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(0,122,51);">Operational Tasks</h2>
                   ${taskListFinal.length > 0 
                     ? `<ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${taskListFinal.map(t => t).join("</li><li style=\"margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;\">")}</li></ul>`
                     : `<ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">Nothing extra from the daily duties sheets</li></ul>`
@@ -1283,7 +1283,7 @@ function render(){
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px;">
               <tr>
                 <td>
-                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px;"><font color="#007A33">Crewing Status</font></h2>
+                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(0,122,51);">Crewing Status</h2>
                   <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a;">${crewingHTMLFormatted}</div>
                 </td>
               </tr>
@@ -1293,7 +1293,7 @@ function render(){
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px;">
               <tr>
                 <td>
-                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px;"><font color="#007A33">Road Closures & Major Roadworks</font></h2>
+                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(0,122,51);">Road Closures & Major Roadworks</h2>
                   ${closureLines.length 
                     ? closureLines.map(c => {
                         const parts = c.split(" – ");
@@ -1311,19 +1311,19 @@ function render(){
                 <td bgcolor="#f0f8f4" style="padding: 15px 20px; border: 2px solid #007A33; border-left: 6px solid #007A33;">
                   <table width="100%" cellpadding="0" cellspacing="0" border="0">
                     <tr>
-                      <td width="100" style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; vertical-align: top;"><font color="#007A33"><strong>Duty Manager:</strong></font></td>
+                      <td width="100" style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; vertical-align: top; color: rgb(0,122,51);"><strong>Duty Manager:</strong></td>
                       <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager ? manager.name : "N/A"}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; vertical-align: top;"><font color="#007A33"><strong>Callsign:</strong></font></td>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; vertical-align: top; color: rgb(0,122,51);"><strong>Callsign:</strong></td>
                       <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager ? manager.callsign : "N/A"}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; vertical-align: top;"><font color="#007A33"><strong>Contact:</strong></font></td>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; vertical-align: top; color: rgb(0,122,51);"><strong>Contact:</strong></td>
                       <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager ? manager.number : "N/A"}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; vertical-align: top;"><font color="#007A33"><strong>Email:</strong></font></td>
+                      <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; vertical-align: top; color: rgb(0,122,51);"><strong>Email:</strong></td>
                       <td style="padding: 6px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #1a1a1a; vertical-align: top;">${manager ? manager.email : "N/A"}</td>
                     </tr>
                   </table>
@@ -1335,7 +1335,7 @@ function render(){
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px;">
               <tr>
                 <td>
-                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px;"><font color="#007A33">Fleet Movements</font></h2>
+                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(0,122,51);">Fleet Movements</h2>
                   <ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${fleetText}</li></ul>
                 </td>
               </tr>
@@ -1345,7 +1345,7 @@ function render(){
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
               <tr>
                 <td>
-                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px;"><font color="#007A33">Additional Information</font></h2>
+                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(0,122,51);">Additional Information</h2>
                   <ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${otherText}</li></ul>
                 </td>
               </tr>
