@@ -441,6 +441,7 @@ button:hover {
     <div class="tab-buttons">
       <button class="primary small" onclick="showTab('callsignTab')">🚑 Callsigns</button>
       <button class="primary small" onclick="showTab('tasksTab')">✅ Tasks by Day</button>
+      <button class="primary small" onclick="showTab('dateTasksTab')">📅 Date-Based Tasks</button>
       <button class="primary small" onclick="showTab('managersTab')">👤 Duty Managers</button>
       <button class="primary" onclick="saveSettingsWithFeedback(this)" style="margin-left: auto;">💾 Save Settings</button>
       <button class="danger small" onclick="closeSettings()">❌ Close</button>
@@ -453,9 +454,12 @@ button:hover {
       <button class="small primary" onclick="addCallsign()" style="margin-top: 12px;">➕ Add Callsign</button>
     </div>
 
-    <!-- TASKS -->
+    <!-- TASKS BY DAY -->
     <div id="tasksTab" class="hidden settings-section">
       <h4>Tasks by Day & Shift</h4>
+      <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
+        Simple tasks that appear every time this day of the week occurs (e.g., every Monday).
+      </p>
       <label style="margin-top: 12px;">Select Day</label>
       <select id="taskDay"></select>
       <label style="margin-top: 12px;">Select Shift</label>
@@ -465,6 +469,23 @@ button:hover {
       </select>
       <div id="taskList" style="margin-top: 12px;"></div>
       <button class="small primary" onclick="addTask()" style="margin-top: 12px;">➕ Add Task</button>
+    </div>
+
+    <!-- DATE-BASED TASKS -->
+    <div id="dateTasksTab" class="hidden settings-section">
+      <h4>Date-Based Tasks</h4>
+      <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
+        Tasks that appear on specific dates, weeks, or date ranges (e.g., "1st of month", "2nd week", "1st-5th").
+      </p>
+      <label style="margin-top: 12px;">Select Day</label>
+      <select id="dateTaskDay"></select>
+      <label style="margin-top: 12px;">Select Shift</label>
+      <select id="dateTaskShift">
+        <option value="Day">Day Shift</option>
+        <option value="Night">Night Shift</option>
+      </select>
+      <div id="dateTaskList" style="margin-top: 12px;"></div>
+      <button class="small primary" onclick="addDateTask()" style="margin-top: 12px;">➕ Add Date Task</button>
     </div>
 
     <!-- DUTY MANAGERS -->
@@ -656,6 +677,7 @@ function getTemporaryClosuresData() {
 days.forEach(d=>{
   day.innerHTML += `<option>${d}</option>`;
   taskDay.innerHTML += `<option>${d}</option>`;
+  dateTaskDay.innerHTML += `<option>${d}</option>`;
 });
 
 // Set current date
@@ -689,11 +711,30 @@ function closeSettings(){
   settings.style.display = "none"; 
 }
 
+const callsignTab = document.getElementById("callsignTab");
+const tasksTab = document.getElementById("tasksTab");
+const dateTasksTab = document.getElementById("dateTasksTab");
+const managersTab = document.getElementById("managersTab");
+const taskList = document.getElementById("taskList");
+const dateTaskList = document.getElementById("dateTaskList");
+const taskDay = document.getElementById("taskDay");
+const taskShift = document.getElementById("taskShift");
+const dateTaskDay = document.getElementById("dateTaskDay");
+const dateTaskShift = document.getElementById("dateTaskShift");
+
 function showTab(id){
   callsignTab.classList.add("hidden");
   tasksTab.classList.add("hidden");
+  dateTasksTab.classList.add("hidden");
   managersTab.classList.add("hidden");
   document.getElementById(id).classList.remove("hidden");
+  
+  // Render appropriate content when switching tabs
+  if (id === 'tasksTab') {
+    renderTasks();
+  } else if (id === 'dateTasksTab') {
+    renderDateTasks();
+  }
 }
 
 function renderSettings(){
@@ -726,47 +767,86 @@ function renderTasks(){
   if (!dayTasks[dayKey]) dayTasks[dayKey] = {Day: [], Night: []};
   if (!dayTasks[dayKey][shiftKey]) dayTasks[dayKey][shiftKey] = [];
   
-  dayTasks[dayKey][shiftKey].forEach((t,i)=>{
-    // Handle both old format (string) and new format (object)
-    const taskObj = typeof t === 'string' ? {task: t, pattern: 'day'} : t;
-    const taskText = taskObj.task || t;
-    const pattern = taskObj.pattern || 'day';
+  // Only show simple day-of-week tasks (strings or objects with pattern 'day')
+  const simpleTasks = dayTasks[dayKey][shiftKey].filter(t => {
+    if (typeof t === 'string') return true;
+    return t.pattern === 'day' || !t.pattern;
+  });
+  
+  simpleTasks.forEach((t,i)=>{
+    // Find the actual index in the full array
+    const actualIndex = dayTasks[dayKey][shiftKey].indexOf(t);
+    const taskText = typeof t === 'string' ? t : (t.task || '');
     
     taskList.innerHTML += `
       <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'}; align-items: center;">
-        <select style="width: 140px; margin-right: 8px;" onchange="updateTaskPattern('${dayKey}', '${shiftKey}', ${i}, this.value)">
-          <option value="day" ${pattern==='day'?'selected':''}>Day of Week</option>
+        <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="updateSimpleTask('${dayKey}', '${shiftKey}', ${actualIndex}, this.value)">
+        <button class="danger small" onclick="dayTasks['${dayKey}']['${shiftKey}'].splice(${actualIndex},1);renderTasks()">➖</button>
+      </div>`;
+  });
+}
+
+function updateSimpleTask(dayKey, shiftKey, index, value){
+  // Ensure it's stored as a simple string for day-of-week tasks
+  dayTasks[dayKey][shiftKey][index] = value;
+}
+
+function renderDateTasks(){
+  dateTaskList.innerHTML = "";
+  const dayKey = dateTaskDay.value;
+  const shiftKey = dateTaskShift.value;
+  
+  // Initialize if needed
+  if (!dayTasks[dayKey]) dayTasks[dayKey] = {Day: [], Night: []};
+  if (!dayTasks[dayKey][shiftKey]) dayTasks[dayKey][shiftKey] = [];
+  
+  // Only show date-based tasks (objects with pattern other than 'day')
+  const dateTasks = dayTasks[dayKey][shiftKey].filter(t => {
+    if (typeof t === 'string') return false;
+    return t.pattern && t.pattern !== 'day';
+  });
+  
+  // Add event listeners for day/shift changes
+  if (!dateTaskDay.hasAttribute('data-listener')) {
+    dateTaskDay.setAttribute('data-listener', 'true');
+    dateTaskDay.addEventListener('change', renderDateTasks);
+    dateTaskShift.addEventListener('change', renderDateTasks);
+  }
+  
+  dateTasks.forEach((t,i)=>{
+    // Find the actual index in the full array
+    const actualIndex = dayTasks[dayKey][shiftKey].indexOf(t);
+    const taskObj = t;
+    const taskText = taskObj.task || '';
+    const pattern = taskObj.pattern || 'date';
+    
+    dateTaskList.innerHTML += `
+      <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'}; align-items: center;">
+        <select style="width: 140px; margin-right: 8px;" onchange="updateTaskPattern('${dayKey}', '${shiftKey}', ${actualIndex}, this.value)">
           <option value="date" ${pattern==='date'?'selected':''}>Date of Month</option>
           <option value="week" ${pattern==='week'?'selected':''}>Week of Month</option>
           <option value="daterange" ${pattern==='daterange'?'selected':''}>Date Range</option>
         </select>
-        ${pattern === 'day' ? `
-          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
-        ` : pattern === 'date' ? `
-          <input type="number" min="1" max="31" value="${taskObj.date || ''}" placeholder="Day (1-31)" style="width: 80px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].date=parseInt(this.value)">
-          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
+        ${pattern === 'date' ? `
+          <input type="number" min="1" max="31" value="${taskObj.date || ''}" placeholder="Day (1-31)" style="width: 80px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${actualIndex}].date=parseInt(this.value)">
+          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${actualIndex}].task=this.value">
         ` : pattern === 'week' ? `
-          <select style="width: 120px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].week=this.value">
+          <select style="width: 120px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${actualIndex}].week=this.value">
             <option value="1st" ${taskObj.week==='1st'?'selected':''}>1st Week</option>
             <option value="2nd" ${taskObj.week==='2nd'?'selected':''}>2nd Week</option>
             <option value="3rd" ${taskObj.week==='3rd'?'selected':''}>3rd Week</option>
             <option value="4th" ${taskObj.week==='4th'?'selected':''}>4th Week</option>
             <option value="last" ${taskObj.week==='last'?'selected':''}>Last Week</option>
           </select>
-          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
+          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${actualIndex}].task=this.value">
         ` : `
-          <input type="number" min="1" max="31" value="${taskObj.startDate || ''}" placeholder="Start" style="width: 70px; margin-right: 4px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].startDate=parseInt(this.value)">
+          <input type="number" min="1" max="31" value="${taskObj.startDate || ''}" placeholder="Start" style="width: 70px; margin-right: 4px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${actualIndex}].startDate=parseInt(this.value)">
           <span style="margin: 0 4px;">-</span>
-          <input type="number" min="1" max="31" value="${taskObj.endDate || ''}" placeholder="End" style="width: 70px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].endDate=parseInt(this.value)">
-          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
+          <input type="number" min="1" max="31" value="${taskObj.endDate || ''}" placeholder="End" style="width: 70px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${actualIndex}].endDate=parseInt(this.value)">
+          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${actualIndex}].task=this.value">
         `}
-        <button class="danger small" onclick="dayTasks['${dayKey}']['${shiftKey}'].splice(${i},1);renderTasks()">➖</button>
+        <button class="danger small" onclick="dayTasks['${dayKey}']['${shiftKey}'].splice(${actualIndex},1);renderDateTasks()">➖</button>
       </div>`;
-    
-    // Ensure the task is an object
-    if (typeof dayTasks[dayKey][shiftKey][i] === 'string') {
-      dayTasks[dayKey][shiftKey][i] = {task: dayTasks[dayKey][shiftKey][i], pattern: 'day'};
-    }
   });
 }
 
@@ -802,7 +882,7 @@ function updateTaskPattern(dayKey, shiftKey, index, newPattern){
     if (!dayTasks[dayKey][shiftKey][index].endDate) dayTasks[dayKey][shiftKey][index].endDate = 31;
   }
   
-  renderTasks();
+  renderDateTasks();
 }
 
 function addTask(){
@@ -812,9 +892,21 @@ function addTask(){
   if (!dayTasks[dayKey]) dayTasks[dayKey] = {Day: [], Night: []};
   if (!dayTasks[dayKey][shiftKey]) dayTasks[dayKey][shiftKey] = [];
   
-  // Add new task as object with default pattern
-  dayTasks[dayKey][shiftKey].push({task: "", pattern: "day"});
+  // Add new task as simple string for day-of-week tasks
+  dayTasks[dayKey][shiftKey].push("");
   renderTasks();
+}
+
+function addDateTask(){
+  const dayKey = dateTaskDay.value;
+  const shiftKey = dateTaskShift.value;
+  
+  if (!dayTasks[dayKey]) dayTasks[dayKey] = {Day: [], Night: []};
+  if (!dayTasks[dayKey][shiftKey]) dayTasks[dayKey][shiftKey] = [];
+  
+  // Add new date-based task as object with default pattern
+  dayTasks[dayKey][shiftKey].push({task: "", pattern: "date", date: 1});
+  renderDateTasks();
 }
 
 function updateTaskDisplay(){
