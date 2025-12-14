@@ -579,32 +579,7 @@ async function loadDataFromAPI() {
       const data = await response.json();
       if (data && Object.keys(data).length > 0) {
         callsigns = data.callsigns || defaultData.callsigns;
-        
-        // Handle dayTasks with proper structure
-        if (data.dayTasks && typeof data.dayTasks === 'object') {
-          dayTasks = {};
-          days.forEach(d => {
-            if (data.dayTasks[d]) {
-              if (Array.isArray(data.dayTasks[d])) {
-                // Old format - migrate to new format
-                dayTasks[d] = {Day: data.dayTasks[d], Night: []};
-              } else if (data.dayTasks[d] && typeof data.dayTasks[d] === 'object') {
-                // New format - ensure both Day and Night arrays exist
-                dayTasks[d] = {
-                  Day: Array.isArray(data.dayTasks[d].Day) ? data.dayTasks[d].Day : [],
-                  Night: Array.isArray(data.dayTasks[d].Night) ? data.dayTasks[d].Night : []
-                };
-              } else {
-                dayTasks[d] = {Day: [], Night: []};
-              }
-            } else {
-              dayTasks[d] = {Day: [], Night: []};
-            }
-          });
-        } else {
-          dayTasks = {...defaultData.dayTasks};
-        }
-        
+        dayTasks = data.dayTasks || defaultData.dayTasks;
         dutyManagers = data.dutyManagers || defaultData.dutyManagers;
         plannedClosures = data.plannedClosures || defaultData.plannedClosures;
         crewingStatus = data.crewingStatus || defaultData.crewingStatus;
@@ -773,11 +748,7 @@ function renderSettings(){
       </div>`;
   });
   
-  // Render tasks - both tabs
   renderTasks();
-  renderDateTasks();
-  
-  // Render managers and crewing
   renderManagers();
   renderCrewingChecks();
 }
@@ -961,21 +932,16 @@ function updateTaskDisplay(){
   
   // Filter tasks based on date patterns
   const currentTasks = allTasks.filter(task => {
-    // Handle old string format (backward compatibility) - always show
+    // Handle old string format (backward compatibility)
     if (typeof task === 'string') {
-      return true;
-    }
-    
-    // If it's an object but has no pattern, treat it as day-of-week task
-    if (!task.pattern) {
-      return true;
+      return true; // Show all old-format tasks
     }
     
     // New object format
-    const pattern = task.pattern;
+    const pattern = task.pattern || 'day';
     
     if (pattern === 'day') {
-      // Day of week - always show
+      // Day of week - always show (current behavior)
       return true;
     } else if (pattern === 'date') {
       // Specific date of month
@@ -1001,16 +967,11 @@ function updateTaskDisplay(){
     if (typeof task === 'string') {
       return task;
     }
-    // For objects, get the task text
     return task.task || '';
-  }).filter(t => t && t.trim().length > 0); // Filter out empty strings
+  }).filter(Boolean);
   
   if (currentTasks.length > 0) {
-    taskDisplay.innerHTML = currentTasks.map(t => {
-      // Ensure we're displaying a string, not an object
-      const taskText = typeof t === 'string' ? t : (t.task || String(t));
-      return `• ${taskText}`;
-    }).join("<br>");
+    taskDisplay.innerHTML = currentTasks.map(t => `• ${t}`).join("<br>");
   } else {
     taskDisplay.innerHTML = "No tasks configured for this day/shift. Add them in Settings.";
   }
@@ -1423,21 +1384,16 @@ function render(){
   
   // Filter tasks based on date patterns
   const dayTasksList = allTasks.filter(task => {
-    // Handle old string format (backward compatibility) - always show
+    // Handle old string format (backward compatibility)
     if (typeof task === 'string') {
-      return true;
-    }
-    
-    // If it's an object but has no pattern, treat it as day-of-week task
-    if (!task.pattern) {
-      return true;
+      return true; // Show all old-format tasks
     }
     
     // New object format
-    const pattern = task.pattern;
+    const pattern = task.pattern || 'day';
     
     if (pattern === 'day') {
-      // Day of week - always show
+      // Day of week - always show (current behavior)
       return true;
     } else if (pattern === 'date') {
       // Specific date of month
@@ -1463,9 +1419,8 @@ function render(){
     if (typeof task === 'string') {
       return task;
     }
-    // For objects, get the task text
     return task.task || '';
-  }).filter(t => t && t.trim().length > 0); // Filter out empty strings
+  }).filter(Boolean);
   
   const taskListFinal = [
     ...dayTasksList,
@@ -1738,30 +1693,12 @@ taskShift.addEventListener("change", () => {
 // Initialize - Load data from API or localStorage
 (async function init() {
   await loadDataFromAPI();
-  
-  // Ensure dayTasks is properly initialized
-  if (!dayTasks || Object.keys(dayTasks).length === 0) {
-    dayTasks = {...defaultData.dayTasks};
-  }
-  
-  // Ensure all days have the proper structure
-  days.forEach(d => {
-    if (!dayTasks[d]) {
-      dayTasks[d] = {Day: [], Night: []};
-    } else if (Array.isArray(dayTasks[d])) {
-      // Migrate old format
-      dayTasks[d] = {Day: dayTasks[d], Night: []};
-    } else if (!dayTasks[d].Day || !dayTasks[d].Night) {
-      dayTasks[d] = {Day: dayTasks[d].Day || [], Night: dayTasks[d].Night || []};
-    }
-  });
-  
   updateManagerDropdown();
   updateTaskDisplay();
-  renderCrewingChecks();
+renderCrewingChecks();
   loadTemporaryClosures();
   checkPlannedClosures();
-  render();
+render();
 })();
 </script>
 
