@@ -734,7 +734,7 @@ function renderTasks(){
     
     taskList.innerHTML += `
       <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'}; align-items: center;">
-        <select style="width: 140px; margin-right: 8px;" onchange="updateTaskPattern('${dayKey}', '${shiftKey}', ${i}, this.value)">
+        <select style="width: 120px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].pattern=this.value;renderTasks()">
           <option value="day" ${pattern==='day'?'selected':''}>Day of Week</option>
           <option value="date" ${pattern==='date'?'selected':''}>Date of Month</option>
           <option value="week" ${pattern==='week'?'selected':''}>Week of Month</option>
@@ -768,41 +768,6 @@ function renderTasks(){
       dayTasks[dayKey][shiftKey][i] = {task: dayTasks[dayKey][shiftKey][i], pattern: 'day'};
     }
   });
-}
-
-function updateTaskPattern(dayKey, shiftKey, index, newPattern){
-  // Ensure task is an object
-  if (typeof dayTasks[dayKey][shiftKey][index] === 'string') {
-    dayTasks[dayKey][shiftKey][index] = {task: dayTasks[dayKey][shiftKey][index], pattern: 'day'};
-  }
-  
-  // Update pattern and clear pattern-specific fields when changing
-  dayTasks[dayKey][shiftKey][index].pattern = newPattern;
-  
-  // Clear pattern-specific fields when switching patterns
-  if (newPattern === 'day') {
-    delete dayTasks[dayKey][shiftKey][index].date;
-    delete dayTasks[dayKey][shiftKey][index].week;
-    delete dayTasks[dayKey][shiftKey][index].startDate;
-    delete dayTasks[dayKey][shiftKey][index].endDate;
-  } else if (newPattern === 'date') {
-    delete dayTasks[dayKey][shiftKey][index].week;
-    delete dayTasks[dayKey][shiftKey][index].startDate;
-    delete dayTasks[dayKey][shiftKey][index].endDate;
-    if (!dayTasks[dayKey][shiftKey][index].date) dayTasks[dayKey][shiftKey][index].date = 1;
-  } else if (newPattern === 'week') {
-    delete dayTasks[dayKey][shiftKey][index].date;
-    delete dayTasks[dayKey][shiftKey][index].startDate;
-    delete dayTasks[dayKey][shiftKey][index].endDate;
-    if (!dayTasks[dayKey][shiftKey][index].week) dayTasks[dayKey][shiftKey][index].week = '1st';
-  } else if (newPattern === 'daterange') {
-    delete dayTasks[dayKey][shiftKey][index].date;
-    delete dayTasks[dayKey][shiftKey][index].week;
-    if (!dayTasks[dayKey][shiftKey][index].startDate) dayTasks[dayKey][shiftKey][index].startDate = 1;
-    if (!dayTasks[dayKey][shiftKey][index].endDate) dayTasks[dayKey][shiftKey][index].endDate = 31;
-  }
-  
-  renderTasks();
 }
 
 function addTask(){
