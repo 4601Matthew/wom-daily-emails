@@ -11,6 +11,46 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   padding: 20px;
   min-height: 100vh;
+  margin: 0;
+}
+
+.banner {
+  background: linear-gradient(135deg, #007A33 0%, #004d20 100%);
+  color: #ffffff;
+  text-align: center;
+  padding: 20px;
+  margin: -20px -20px 20px -20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  border-bottom: 3px solid #FFB200;
+}
+
+@media (max-width: 600px) {
+  .banner {
+    margin: -20px -20px 15px -20px;
+    padding: 15px;
+  }
+  
+  .banner h1 {
+    font-size: 22px;
+  }
+  
+  .banner p {
+    font-size: 14px;
+  }
+}
+
+.banner h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.banner p {
+  margin: 8px 0 0 0;
+  font-size: 16px;
+  font-weight: 400;
+  opacity: 0.95;
 }
 
 .container {
@@ -19,6 +59,12 @@ body {
   display: grid;
   grid-template-columns: 450px 1fr;
   gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
 }
 
 .card {
@@ -113,6 +159,21 @@ button:hover {
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+@media (max-width: 600px) {
+  .email-wrapper {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+  
+  .email-content {
+    padding: 20px 16px;
+  }
+  
+  .preview {
+    padding: 10px;
+  }
 }
 
 .email-header {
@@ -367,6 +428,11 @@ button:hover {
 </head>
 
 <body>
+
+<div class="banner">
+  <h1>Hato Hone St John</h1>
+  <p>Pre Shift Email Briefing Tool</p>
+</div>
 
 <div class="container">
 
