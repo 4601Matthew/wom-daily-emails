@@ -82,15 +82,24 @@ async function fetchNZTA() {
     }
     
     const contentType = response.headers.get('content-type') || '';
+    const responseText = await response.text();
     let events = [];
     
-    if (contentType.includes('application/json')) {
-      events = await response.json();
+    // Try JSON first
+    if (contentType.includes('application/json') || responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
+      try {
+        events = JSON.parse(responseText);
+      } catch (e) {
+        console.log('JSON parse failed, trying XML:', e);
+        events = await parseXMLResponse(responseText);
+      }
     } else {
       // XML response - parse it
-      const xmlText = await response.text();
-      events = await parseXMLResponse(xmlText);
+      events = await parseXMLResponse(responseText);
     }
+    
+    // Log what we got for debugging
+    console.log('Raw events from API:', JSON.stringify(events).substring(0, 500));
     
     return parseNZTAClosures(events);
   } catch (error) {
@@ -105,26 +114,55 @@ async function parseXMLResponse(xmlText) {
   // This is a basic parser - you may want to use a proper XML library
   const events = [];
   
-  // Look for roadevent elements
+  console.log('Parsing XML response, length:', xmlText.length);
+  
+  // Look for roadevent elements (case insensitive)
   const roadeventRegex = /<roadevent[^>]*>([\s\S]*?)<\/roadevent>/gi;
   let match;
+  let matchCount = 0;
   
   while ((match = roadeventRegex.exec(xmlText)) !== null) {
+    matchCount++;
     const eventXml = match[1];
     const event = {};
     
-    // Extract common fields
-    const fields = ['id', 'type', 'description', 'startDate', 'endDate', 'roadName', 'name', 'region'];
+    // Extract common fields (case insensitive)
+    const fields = ['id', 'type', 'description', 'startDate', 'endDate', 'roadName', 'name', 'region', 
+                    'start', 'end', 'startTime', 'endTime', 'startDateTime', 'endDateTime',
+                    'road', 'highway', 'message', 'desc', 'info', 'details', 'category', 'eventType'];
+    
     fields.forEach(field => {
+      // Try both exact case and case-insensitive
       const regex = new RegExp(`<${field}[^>]*>([\\s\\S]*?)<\\/${field}>`, 'i');
       const fieldMatch = eventXml.match(regex);
       if (fieldMatch) {
-        event[field] = fieldMatch[1].trim();
+        event[field] = fieldMatch[1].trim().replace(/<[^>]*>/g, ''); // Remove nested tags
       }
     });
     
+    // Also try to extract any text content
+    if (Object.keys(event).length === 0) {
+      const textContent = eventXml.replace(/<[^>]*>/g, ' ').trim();
+      if (textContent) {
+        event.description = textContent;
+      }
+    }
+    
     if (Object.keys(event).length > 0) {
       events.push(event);
+    }
+  }
+  
+  console.log(`Found ${matchCount} roadevent matches, extracted ${events.length} events`);
+  
+  // If no roadevent tags found, try looking for any event-like structures
+  if (events.length === 0) {
+    console.log('No roadevent tags found, checking for other event structures...');
+    // Try to find any structured data
+    const anyEventRegex = /<[^>]+event[^>]*>([\s\S]*?)<\/[^>]+event[^>]*>/gi;
+    let anyMatch;
+    while ((anyMatch = anyEventRegex.exec(xmlText)) !== null && events.length < 10) {
+      console.log('Found potential event structure');
     }
   }
   
