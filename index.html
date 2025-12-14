@@ -487,6 +487,7 @@ button:hover {
       <button class="primary small" onclick="showClosureTab('activeClosuresTab')">🟢 Active</button>
       <button class="primary small" onclick="showClosureTab('futureClosuresTab')">🔵 Future</button>
       <button class="primary small" onclick="showClosureTab('pastClosuresTab')">⚫ Past</button>
+      <button class="secondary small" onclick="fetchRoadClosuresFromAPIs()">🌐 Import from APIs</button>
       <button class="primary" onclick="savePlannedClosuresWithFeedback(this)" style="margin-left: auto;">💾 Save</button>
       <button class="danger small" onclick="closePlannedClosures()">❌ Close</button>
     </div>
@@ -510,6 +511,29 @@ button:hover {
     <!-- Past Closures Tab -->
     <div id="pastClosuresTab" class="hidden settings-section">
       <div id="pastClosuresList" style="margin-top: 16px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- API CLOSURES MODAL -->
+<div class="modal" id="apiClosuresModal">
+  <div class="modal-content" style="max-width: 800px;">
+    <h3>🌐 Import Road Closures from APIs</h3>
+    
+    <div style="margin-top: 16px;">
+      <button class="primary small" onclick="fetchFromNZTA()">Fetch NZTA</button>
+      <button class="primary small" onclick="fetchFromNPDC()">Fetch NPDC</button>
+      <button class="primary small" onclick="fetchFromSouthTaranaki()">Fetch South Taranaki</button>
+      <button class="primary small" onclick="fetchFromStratford()">Fetch Stratford</button>
+      <button class="primary small" onclick="fetchAllAPIs()">Fetch All</button>
+    </div>
+    
+    <div id="apiClosuresList" style="margin-top: 20px; max-height: 500px; overflow-y: auto;">
+      <p style="color: #666; font-style: italic;">Click a button above to fetch road closures from the APIs.</p>
+    </div>
+    
+    <div style="margin-top: 16px; display: flex; gap: 8px;">
+      <button class="danger small" onclick="closeAPIClosures()">❌ Close</button>
     </div>
   </div>
 </div>
@@ -886,6 +910,167 @@ function closePlannedClosures(){
   plannedClosuresModal.style.display = "none";
   checkPlannedClosures();
   render();
+}
+
+/* ---------- API CLOSURES ---------- */
+let fetchedClosures = [];
+const apiClosuresModal = document.getElementById("apiClosuresModal");
+const apiClosuresList = document.getElementById("apiClosuresList");
+
+function fetchRoadClosuresFromAPIs(){
+  apiClosuresModal.style.display = "flex";
+  apiClosuresList.innerHTML = '<p style="color: #666; font-style: italic;">Click a button above to fetch road closures from the APIs.</p>';
+  fetchedClosures = [];
+}
+
+function closeAPIClosures(){
+  apiClosuresModal.style.display = "none";
+}
+
+async function fetchFromNZTA(){
+  await fetchFromAPI('NZTA', '/api/fetch-closures?source=nzta');
+}
+
+async function fetchFromNPDC(){
+  await fetchFromAPI('NPDC', '/api/fetch-closures?source=npdc');
+}
+
+async function fetchFromSouthTaranaki(){
+  await fetchFromAPI('South Taranaki', '/api/fetch-closures?source=southtaranaki');
+}
+
+async function fetchFromStratford(){
+  await fetchFromAPI('Stratford', '/api/fetch-closures?source=stratford');
+}
+
+async function fetchAllAPIs(){
+  apiClosuresList.innerHTML = '<p style="color: #666;">Fetching from all sources...</p>';
+  await Promise.all([
+    fetchFromNZTA(),
+    fetchFromNPDC(),
+    fetchFromSouthTaranaki(),
+    fetchFromStratford()
+  ]);
+}
+
+async function fetchFromAPI(sourceName, endpoint){
+  try {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.setAttribute('data-source', sourceName);
+    loadingDiv.style.cssText = 'margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: 6px;';
+    loadingDiv.innerHTML = `<p style="color: #666;">Fetching from ${sourceName}...</p>`;
+    apiClosuresList.appendChild(loadingDiv);
+    
+    const response = await fetch(API_BASE_URL + endpoint);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch from ${sourceName}`);
+    }
+    
+    const data = await response.json();
+    const closures = data.closures || [];
+    
+    loadingDiv.remove();
+    
+    if (closures.length === 0) {
+      const noDataDiv = document.createElement('div');
+      noDataDiv.setAttribute('data-source', sourceName);
+      noDataDiv.style.cssText = 'margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: 6px;';
+      noDataDiv.innerHTML = `<p style="color: #999; font-style: italic;">No closures found from ${sourceName}.</p>`;
+      apiClosuresList.appendChild(noDataDiv);
+      return;
+    }
+    
+    // Add source to each closure
+    closures.forEach(c => {
+      c.source = sourceName;
+      c.id = `${sourceName}-${Date.now()}-${Math.random()}`;
+    });
+    
+    fetchedClosures.push(...closures);
+    renderAPIClosures();
+  } catch (error) {
+    console.error(`Error fetching from ${sourceName}:`, error);
+    const errorDiv = document.createElement('div');
+    errorDiv.setAttribute('data-source', sourceName);
+    errorDiv.style.cssText = 'margin-top: 16px; padding: 12px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;';
+    errorDiv.innerHTML = `<p style="color: #856404; margin: 0;"><strong>${sourceName}:</strong> Error fetching data. ${error.message}</p>`;
+    apiClosuresList.appendChild(errorDiv);
+  }
+}
+
+function renderAPIClosures(){
+  if (fetchedClosures.length === 0) {
+    apiClosuresList.innerHTML = '<p style="color: #666; font-style: italic;">No closures fetched yet. Click a button above to fetch.</p>';
+    return;
+  }
+  
+  apiClosuresList.innerHTML = '<h4 style="margin: 0 0 16px 0; color: #333;">Fetched Closures:</h4>';
+  
+  fetchedClosures.forEach((closure, index) => {
+    const closureDiv = document.createElement('div');
+    closureDiv.style.cssText = 'margin-bottom: 16px; padding: 16px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #007A33;';
+    
+    const startDate = closure.startDate || closure.start_date || 'Not specified';
+    const endDate = closure.endDate || closure.end_date || 'Not specified';
+    const roadName = closure.roadName || closure.road_name || closure.road || 'Unknown Road';
+    const type = closure.type || closure.closureType || 'Road Closure';
+    const info = closure.closureInfo || closure.info || closure.description || '';
+    const detour = closure.detour || closure.detourInfo || '';
+    const source = closure.source || 'Unknown';
+    
+    closureDiv.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: start; gap: 16px;">
+        <div style="flex: 1;">
+          <p style="margin: 0 0 8px 0; font-weight: 600; color: #007A33;">${roadName}</p>
+          <p style="margin: 4px 0; font-size: 13px; color: #666;"><strong>Source:</strong> ${source}</p>
+          <p style="margin: 4px 0; font-size: 13px; color: #666;"><strong>Type:</strong> ${type}</p>
+          <p style="margin: 4px 0; font-size: 13px; color: #666;"><strong>Start:</strong> ${startDate}</p>
+          <p style="margin: 4px 0; font-size: 13px; color: #666;"><strong>End:</strong> ${endDate}</p>
+          ${info ? `<p style="margin: 8px 0 4px 0; font-size: 13px; color: #333;">${info}</p>` : ''}
+          ${detour ? `<p style="margin: 4px 0; font-size: 13px; color: #666;"><strong>Detour:</strong> ${detour}</p>` : ''}
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button class="primary small" onclick="acceptAPIClosure(${index})">✓ Accept</button>
+          <button class="danger small" onclick="rejectAPIClosure(${index})">✗ Reject</button>
+        </div>
+      </div>
+    `;
+    
+    apiClosuresList.appendChild(closureDiv);
+  });
+}
+
+function acceptAPIClosure(index){
+  const closure = fetchedClosures[index];
+  
+  // Convert to our format
+  const newClosure = {
+    startDate: closure.startDate || closure.start_date || '',
+    endDate: closure.endDate || closure.end_date || '',
+    shiftType: closure.shiftType || 'All',
+    roadName: closure.roadName || closure.road_name || closure.road || '',
+    type: closure.type || closure.closureType || '',
+    closureInfo: closure.closureInfo || closure.info || closure.description || '',
+    detour: closure.detour || closure.detourInfo || ''
+  };
+  
+  plannedClosures.push(newClosure);
+  fetchedClosures.splice(index, 1);
+  
+  renderAPIClosures();
+  renderNewClosureForm();
+  
+  // Show success message
+  const successMsg = document.createElement('div');
+  successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 12px 20px; background: #d4edda; color: #155724; border-radius: 6px; border-left: 4px solid #28a745; z-index: 10000;';
+  successMsg.textContent = '✓ Closure added to planned closures';
+  document.body.appendChild(successMsg);
+  setTimeout(() => successMsg.remove(), 3000);
+}
+
+function rejectAPIClosure(index){
+  fetchedClosures.splice(index, 1);
+  renderAPIClosures();
 }
 
 function renderNewClosureForm(){
