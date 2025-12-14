@@ -379,7 +379,7 @@ button:hover {
 
   <label>📅 Day & Shift</label>
   <div class="shift-selector">
-    <select id="day"></select>
+  <select id="day"></select>
     <select id="shift">
       <option value="Day">Day Shift</option>
       <option value="Night">Night Shift</option>
@@ -407,7 +407,7 @@ button:hover {
   <div id="closures"></div>
   <div style="display: flex; gap: 8px; margin-top: 8px;">
     <button class="small primary" onclick="openPlannedClosures()">📅 Plan Road Closures</button>
-    <button class="small primary" onclick="addClosure()">➕ Add Road Closure</button>
+  <button class="small primary" onclick="addClosure()">➕ Add Road Closure</button>
   </div>
 
   <label>👤 Duty Manager</label>
@@ -727,11 +727,46 @@ function renderTasks(){
   if (!dayTasks[dayKey][shiftKey]) dayTasks[dayKey][shiftKey] = [];
   
   dayTasks[dayKey][shiftKey].forEach((t,i)=>{
+    // Handle both old format (string) and new format (object)
+    const taskObj = typeof t === 'string' ? {task: t, pattern: 'day'} : t;
+    const taskText = taskObj.task || t;
+    const pattern = taskObj.pattern || 'day';
+    
     taskList.innerHTML += `
-      <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'};">
-        <input value="${t}" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}]=this.value">
+      <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'}; align-items: center;">
+        <select style="width: 120px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].pattern=this.value;renderTasks()">
+          <option value="day" ${pattern==='day'?'selected':''}>Day of Week</option>
+          <option value="date" ${pattern==='date'?'selected':''}>Date of Month</option>
+          <option value="week" ${pattern==='week'?'selected':''}>Week of Month</option>
+          <option value="daterange" ${pattern==='daterange'?'selected':''}>Date Range</option>
+        </select>
+        ${pattern === 'day' ? `
+          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
+        ` : pattern === 'date' ? `
+          <input type="number" min="1" max="31" value="${taskObj.date || ''}" placeholder="Day (1-31)" style="width: 80px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].date=parseInt(this.value)">
+          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
+        ` : pattern === 'week' ? `
+          <select style="width: 120px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].week=this.value">
+            <option value="1st" ${taskObj.week==='1st'?'selected':''}>1st Week</option>
+            <option value="2nd" ${taskObj.week==='2nd'?'selected':''}>2nd Week</option>
+            <option value="3rd" ${taskObj.week==='3rd'?'selected':''}>3rd Week</option>
+            <option value="4th" ${taskObj.week==='4th'?'selected':''}>4th Week</option>
+            <option value="last" ${taskObj.week==='last'?'selected':''}>Last Week</option>
+          </select>
+          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
+        ` : `
+          <input type="number" min="1" max="31" value="${taskObj.startDate || ''}" placeholder="Start" style="width: 70px; margin-right: 4px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].startDate=parseInt(this.value)">
+          <span style="margin: 0 4px;">-</span>
+          <input type="number" min="1" max="31" value="${taskObj.endDate || ''}" placeholder="End" style="width: 70px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].endDate=parseInt(this.value)">
+          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
+        `}
         <button class="danger small" onclick="dayTasks['${dayKey}']['${shiftKey}'].splice(${i},1);renderTasks()">➖</button>
       </div>`;
+    
+    // Ensure the task is an object
+    if (typeof dayTasks[dayKey][shiftKey][i] === 'string') {
+      dayTasks[dayKey][shiftKey][i] = {task: dayTasks[dayKey][shiftKey][i], pattern: 'day'};
+    }
   });
 }
 
@@ -742,25 +777,71 @@ function addTask(){
   if (!dayTasks[dayKey]) dayTasks[dayKey] = {Day: [], Night: []};
   if (!dayTasks[dayKey][shiftKey]) dayTasks[dayKey][shiftKey] = [];
   
-  dayTasks[dayKey][shiftKey].push("");
+  // Add new task as object with default pattern
+  dayTasks[dayKey][shiftKey].push({task: "", pattern: "day"});
   renderTasks();
 }
 
 function updateTaskDisplay(){
   const dayKey = day.value;
   const shiftKey = shift.value;
+  const selectedDateObj = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  const dayOfMonth = selectedDateObj.getDate();
+  const weekOfMonth = Math.ceil(dayOfMonth / 7);
+  const lastDayOfMonth = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth() + 1, 0).getDate();
+  const isLastWeek = dayOfMonth > (lastDayOfMonth - 7);
   
   // Handle old format (array) or new format (object with Day/Night)
-  let currentTasks = [];
+  let allTasks = [];
   if (dayTasks[dayKey]) {
     if (Array.isArray(dayTasks[dayKey])) {
       // Old format - migrate
-      currentTasks = dayTasks[dayKey];
+      allTasks = dayTasks[dayKey];
       dayTasks[dayKey] = {Day: dayTasks[dayKey], Night: []};
     } else {
-      currentTasks = dayTasks[dayKey][shiftKey] || [];
+      allTasks = dayTasks[dayKey][shiftKey] || [];
     }
   }
+  
+  // Filter tasks based on date patterns
+  const currentTasks = allTasks.filter(task => {
+    // Handle old string format (backward compatibility)
+    if (typeof task === 'string') {
+      return true; // Show all old-format tasks
+    }
+    
+    // New object format
+    const pattern = task.pattern || 'day';
+    
+    if (pattern === 'day') {
+      // Day of week - always show (current behavior)
+      return true;
+    } else if (pattern === 'date') {
+      // Specific date of month
+      return task.date === dayOfMonth;
+    } else if (pattern === 'week') {
+      // Week of month
+      if (task.week === 'last') {
+        return isLastWeek;
+      } else {
+        const weekNum = parseInt(task.week);
+        return weekNum === weekOfMonth;
+      }
+    } else if (pattern === 'daterange') {
+      // Date range
+      const start = task.startDate || 1;
+      const end = task.endDate || 31;
+      return dayOfMonth >= start && dayOfMonth <= end;
+    }
+    
+    return true; // Default: show task
+  }).map(task => {
+    // Extract task text
+    if (typeof task === 'string') {
+      return task;
+    }
+    return task.task || '';
+  }).filter(Boolean);
   
   if (currentTasks.length > 0) {
     taskDisplay.innerHTML = currentTasks.map(t => `• ${t}`).join("<br>");
@@ -1154,25 +1235,71 @@ function render(){
   const greetingComment = document.getElementById("greetingComment").value.trim();
   
   // Tasks - handle both old format (array) and new format (object with Day/Night)
-  let dayTasksList = [];
+  // Also filter by date patterns
+  let allTasks = [];
   const dayKey = day.value;
   const shiftKey = shift.value;
+  const taskDate = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  const dayOfMonth = taskDate.getDate();
+  const weekOfMonth = Math.ceil(dayOfMonth / 7);
+  const lastDayOfMonth = new Date(taskDate.getFullYear(), taskDate.getMonth() + 1, 0).getDate();
+  const isLastWeek = dayOfMonth > (lastDayOfMonth - 7);
   
   if (dayTasks[dayKey]) {
     if (Array.isArray(dayTasks[dayKey])) {
       // Old format
-      dayTasksList = dayTasks[dayKey];
+      allTasks = dayTasks[dayKey];
     } else {
       // New format
-      dayTasksList = dayTasks[dayKey][shiftKey] || [];
+      allTasks = dayTasks[dayKey][shiftKey] || [];
     }
   }
+  
+  // Filter tasks based on date patterns
+  const dayTasksList = allTasks.filter(task => {
+    // Handle old string format (backward compatibility)
+    if (typeof task === 'string') {
+      return true; // Show all old-format tasks
+    }
+    
+    // New object format
+    const pattern = task.pattern || 'day';
+    
+    if (pattern === 'day') {
+      // Day of week - always show (current behavior)
+      return true;
+    } else if (pattern === 'date') {
+      // Specific date of month
+      return task.date === dayOfMonth;
+    } else if (pattern === 'week') {
+      // Week of month
+      if (task.week === 'last') {
+        return isLastWeek;
+      } else {
+        const weekNum = parseInt(task.week);
+        return weekNum === weekOfMonth;
+      }
+    } else if (pattern === 'daterange') {
+      // Date range
+      const start = task.startDate || 1;
+      const end = task.endDate || 31;
+      return dayOfMonth >= start && dayOfMonth <= end;
+    }
+    
+    return true; // Default: show task
+  }).map(task => {
+    // Extract task text
+    if (typeof task === 'string') {
+      return task;
+    }
+    return task.task || '';
+  }).filter(Boolean);
   
   const taskListFinal = [
     ...dayTasksList,
     ...extraTasks.value.split("\n").filter(Boolean)
   ];
-  
+
   // Crewing
   const crewStatuses = callsigns.map(c => ({
     callsign: c,
@@ -1189,7 +1316,7 @@ function render(){
     const v = [...r.querySelectorAll("input")].map(i => i.value);
     return v.every(Boolean) ? `${v[0]} – ${v[1]} – ${v[2]} – ${v[3]}` : null;
   }).filter(Boolean);
-  
+
   // Duty Manager
   const managerIndex = dutyManager.value === "" ? -1 : parseInt(dutyManager.value);
   const manager = managerIndex >= 0 && dutyManagers[managerIndex] ? dutyManagers[managerIndex] : null;
@@ -1201,8 +1328,8 @@ function render(){
   const otherText = other.value.trim() || "Nothing extra to report.";
   
   const shiftLabel = shift.value === "Night" ? "Night" : "Day";
-  const selectedDateObj = selectedDate.value ? new Date(selectedDate.value) : new Date();
-  const dateStr = selectedDateObj.toLocaleDateString("en-NZ", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const currentDate = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  const dateStr = currentDate.toLocaleDateString("en-NZ", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   const timeStr = new Date().toLocaleTimeString("en-NZ", { hour: "2-digit", minute: "2-digit" });
   const timestamp = new Date().toLocaleString("en-NZ", { 
     year: "numeric", 
@@ -1408,8 +1535,8 @@ async function copyEmail(){
   s.addRange(r);
   
   try {
-    document.execCommand("copy");
-    s.removeAllRanges();
+  document.execCommand("copy");
+  s.removeAllRanges();
     alert("✅ Copied for Outlook Web! Paste into your email editor (Ctrl+V or Cmd+V).");
   } catch (err) {
     alert("⚠️ Please manually select and copy the preview content.");
@@ -1441,10 +1568,10 @@ taskShift.addEventListener("change", () => {
   await loadDataFromAPI();
   updateManagerDropdown();
   updateTaskDisplay();
-  renderCrewingChecks();
+renderCrewingChecks();
   loadTemporaryClosures();
   checkPlannedClosures();
-  render();
+render();
 })();
 </script>
 
