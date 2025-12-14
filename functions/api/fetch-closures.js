@@ -59,52 +59,18 @@ export async function onRequest(context) {
   }
 }
 
-// Fetch from NZTA using TrafficNZ.info API - Taranaki Region Specific
+// Fetch from NZTA using TrafficNZ.info API
 // API Documentation: https://trafficnz.info/service/traffic/rest/4?_wadl
 // Official docs: https://www.nzta.govt.nz/traffic-and-travel-information/use-our-data/about-the-apis/
 // This API provides road event data for New Zealand
 // Available endpoints:
-// - /events/roadevent/all - All road events
+// - /events/roadevent/all - All road events (used here)
 // - /events/roadevent/byregion/{region} - Events by region (e.g., "Taranaki")
 // - /events/roadevent/withinbounds/{minlon}/{minlat}/{maxlon}/{maxlat} - Events within bounds
 async function fetchNZTA() {
   try {
-    // Fetch Taranaki-specific road events from TrafficNZ API
-    // Using the byregion endpoint to get only Taranaki events
-    const response = await fetch('https://trafficnz.info/service/traffic/rest/4/events/roadevent/byregion/Taranaki', {
-      headers: {
-        'Accept': 'application/json, application/xml, */*'
-      }
-    });
-    
-    if (!response.ok) {
-      // If region-specific fails, try all events and filter by region
-      console.log('Region-specific endpoint failed, trying all events...');
-      return await fetchNZTAAll();
-    }
-    
-    const contentType = response.headers.get('content-type') || '';
-    let events = [];
-    
-    if (contentType.includes('application/json')) {
-      events = await response.json();
-    } else {
-      // XML response - parse it
-      const xmlText = await response.text();
-      events = await parseXMLResponse(xmlText);
-    }
-    
-    return parseNZTAClosures(events);
-  } catch (error) {
-    console.error('Error fetching NZTA closures:', error);
-    // Fallback to fetching all and filtering
-    return await fetchNZTAAll();
-  }
-}
-
-// Fallback function to fetch all events and filter by Taranaki region
-async function fetchNZTAAll() {
-  try {
+    // Fetch ALL road events from TrafficNZ API
+    // Using the /all endpoint to get all road closures across New Zealand
     const response = await fetch('https://trafficnz.info/service/traffic/rest/4/events/roadevent/all', {
       headers: {
         'Accept': 'application/json, application/xml, */*'
@@ -121,19 +87,14 @@ async function fetchNZTAAll() {
     if (contentType.includes('application/json')) {
       events = await response.json();
     } else {
+      // XML response - parse it
       const xmlText = await response.text();
       events = await parseXMLResponse(xmlText);
     }
     
-    // Filter for Taranaki region events
-    const taranakiEvents = events.filter(event => {
-      const region = (event.region || event.regionName || '').toLowerCase();
-      return region.includes('taranaki');
-    });
-    
-    return parseNZTAClosures(taranakiEvents);
+    return parseNZTAClosures(events);
   } catch (error) {
-    console.error('Error fetching all NZTA closures:', error);
+    console.error('Error fetching NZTA closures:', error);
     return [];
   }
 }
