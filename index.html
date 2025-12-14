@@ -296,6 +296,13 @@ button:hover {
   min-height: 400px;
 }
 
+#womPreview {
+  background: #f4f4f4;
+  padding: 20px;
+  border-radius: 8px;
+  min-height: 400px;
+}
+
 .email-wrapper {
   max-width: 480px;
   margin: 0 auto;
@@ -686,6 +693,9 @@ button:hover {
     <!-- BUILDER -->
     <div class="card builder-card">
       <h3>📢 WOM Comms Builder</h3>
+
+      <label>📅 Date</label>
+      <input type="date" id="womDate" onchange="updateWomTitleFromDate();">
 
       <label>📋 Title</label>
       <input type="text" id="womTitle" placeholder="e.g., Taranaki WOM Comms - 15 January 2025" value="Taranaki WOM Comms - " oninput="renderWomEmail();">
@@ -1891,6 +1901,19 @@ function updateWomSection(id, field, value) {
   }
 }
 
+function updateWomTitleFromDate() {
+  const dateInput = document.getElementById('womDate');
+  const titleInput = document.getElementById('womTitle');
+  
+  if (dateInput && dateInput.value) {
+    const date = new Date(dateInput.value);
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    const formattedDate = date.toLocaleDateString('en-NZ', options);
+    titleInput.value = `Taranaki WOM Comms - ${formattedDate}`;
+    renderWomEmail();
+  }
+}
+
 function renderWomEmail() {
   const preview = document.getElementById('womPreview');
   if (!preview) return;
@@ -1942,7 +1965,7 @@ function renderWomEmail() {
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: rgb(244,244,244);">
   <tr>
     <td align="center" style="padding: 20px 0;">
-      <table width="550" cellpadding="0" cellspacing="0" border="0" style="max-width: 550px; width: 100%; background-color: rgb(255,255,255); border-radius: 10px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
+      <table width="550" cellpadding="0" cellspacing="0" border="0" style="max-width: 550px; width: 100%; background-color: rgb(255,255,255); border: 2px solid rgb(0,122,51); border-radius: 10px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
         <!-- Header -->
         <tr>
           <td bgcolor="rgb(0,122,51)" style="padding: 24px 18px 20px; border-bottom: 3px solid rgb(0,77,32); text-align: center;">
@@ -2049,6 +2072,15 @@ renderCrewingChecks();
 render();
   
   // Initialize WOM Comms
+  const womDateInput = document.getElementById('womDate');
+  if (womDateInput) {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    womDateInput.value = `${year}-${month}-${day}`;
+    updateWomTitleFromDate();
+  }
   renderWomSections();
   renderWomEmail();
 })();
