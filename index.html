@@ -1069,32 +1069,32 @@ async function savePlannedClosuresWithFeedback(button){
 }
 
 function checkPlannedClosures(){
-  const today = new Date();
+  // Use the selected date, not today's date
+  const selectedDateObj = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  selectedDateObj.setHours(0, 0, 0, 0);
   const currentDay = day.value;
   const currentShift = shift.value;
-  const todayStr = today.toISOString().split('T')[0];
+  
+  // Clear existing closures first when date changes
+  // This ensures we only show closures for the selected date
+  closures.innerHTML = "";
   
   plannedClosures.forEach(closure => {
     if (!closure.startDate || !closure.endDate) return;
     
     const startDate = new Date(closure.startDate);
+    startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(closure.endDate);
     endDate.setHours(23, 59, 59);
     
-    if (today >= startDate && today <= endDate) {
+    // Check if the selected date falls within the closure date range
+    if (selectedDateObj >= startDate && selectedDateObj <= endDate) {
       const shiftMatch = closure.shiftType === "All" || 
                         closure.shiftType === currentShift;
       
       if (shiftMatch) {
-        // Check if already added
-        const alreadyAdded = [...closures.children].some(item => {
-          const inputs = [...item.querySelectorAll("input")];
-          return inputs[0]?.value === closure.roadName;
-        });
-        
-        if (!alreadyAdded) {
-          addClosureFromPlanned(closure);
-        }
+        // Add the closure (we already cleared the list, so no need to check for duplicates)
+        addClosureFromPlanned(closure);
       }
     }
   });
