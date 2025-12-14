@@ -55,6 +55,71 @@ body {
   opacity: 0.95;
 }
 
+.nav-menu {
+  background: #ffffff;
+  border-bottom: 2px solid #007A33;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  margin: 0 -20px 20px -20px;
+  padding: 0 20px;
+}
+
+.nav-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 0;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.nav-menu li {
+  margin: 0;
+}
+
+.nav-menu a {
+  display: block;
+  padding: 16px 24px;
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.nav-menu a:hover {
+  background: #f8f9fa;
+  color: #007A33;
+}
+
+.nav-menu a.active {
+  color: #007A33;
+  border-bottom-color: #007A33;
+  background: #f0f8f4;
+}
+
+.page-section {
+  display: none;
+}
+
+.page-section.active {
+  display: block;
+}
+
+@media (max-width: 600px) {
+  .nav-menu ul {
+    flex-wrap: wrap;
+  }
+  
+  .nav-menu a {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+}
+
 .container {
   max-width: 1400px;
   margin: auto;
@@ -436,6 +501,14 @@ button:hover {
   <p>Pre Shift Email Briefing Tool</p>
 </div>
 
+<nav class="nav-menu">
+  <ul>
+    <li><a href="#" class="nav-link active" data-page="email-builder">📧 Email Builder</a></li>
+    <!-- More menu items will be added here -->
+  </ul>
+</nav>
+
+<div id="email-builder" class="page-section active">
 <div class="container">
 
 <!-- BUILDER -->
@@ -500,6 +573,8 @@ button:hover {
 </div>
 
 </div>
+</div>
+<!-- End email-builder page section -->
 
 <!-- SETTINGS MODAL -->
 <div class="modal" id="settings">
@@ -1629,6 +1704,25 @@ taskDay.addEventListener("change", () => {
 
 taskShift.addEventListener("change", () => {
   renderTasks();
+});
+
+/* ---------- NAVIGATION ---------- */
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const pageId = link.getAttribute('data-page');
+    
+    // Remove active class from all links and pages
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+    
+    // Add active class to clicked link and corresponding page
+    link.classList.add('active');
+    const page = document.getElementById(pageId);
+    if (page) {
+      page.classList.add('active');
+    }
+  });
 });
 
 // Initialize - Load data from API or localStorage
