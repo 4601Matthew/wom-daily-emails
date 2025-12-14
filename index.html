@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>WOM/GO</title>
+<title>WOM/GOM Email Toolkit</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" type="image/png" href="https://raisely-images.imgix.net/st-john-community-hub/uploads/hato-hone-st-john-logo-stacked-png-c38fae.png">
-<link rel="apple-touch-icon" href="https://raisely-images.imgix.net/st-john-community-hub/uploads/hato-hone-st-john-logo-stacked-png-c38fae.png">
+<link rel="icon" type="image/png" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJqTAcsd1m83v4KwjRetSUuMOZrZWEk9zmAQ&s">
+<link rel="apple-touch-icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJqTAcsd1m83v4KwjRetSUuMOZrZWEk9zmAQ&s">
 
 <style>
 body {
@@ -582,6 +582,7 @@ button:hover {
   <ul>
     <li><a href="#" class="nav-link active" data-page="home">🏠 Home</a></li>
     <li><a href="#" class="nav-link" data-page="email-builder">📧 Pre-Shift Email Briefing</a></li>
+    <li><a href="#" class="nav-link" data-page="wom-comms">📢 WOM Comms</a></li>
     <!-- More menu items will be added here -->
   </ul>
 </nav>
@@ -596,6 +597,15 @@ button:hover {
       </div>
       <h3>Pre-Shift Email Briefing</h3>
       <p>Create and generate daily shift briefing emails</p>
+    </div>
+    
+    <div class="home-card" onclick="navigateToPage('wom-comms')">
+      <div class="home-card-icon">
+        <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=200&h=200&fit=crop" alt="Communications" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <div style="display:none; font-size: 64px;">📢</div>
+      </div>
+      <h3>WOM Comms</h3>
+      <p>Create and generate weekly area wide communications</p>
     </div>
     <!-- More home cards will be added here for future features -->
   </div>
@@ -669,6 +679,41 @@ button:hover {
 </div>
 </div>
 <!-- End email-builder page section -->
+
+<!-- WOM COMMS PAGE -->
+<div id="wom-comms" class="page-section">
+  <div class="container">
+    <!-- BUILDER -->
+    <div class="card builder-card">
+      <h3>📢 WOM Comms Builder</h3>
+
+      <label>📋 Title</label>
+      <input type="text" id="womTitle" placeholder="e.g., Taranaki WOM Comms - 15 January 2025" value="Taranaki WOM Comms - " oninput="renderWomEmail();">
+
+      <label>📝 Introduction</label>
+      <textarea id="womIntroduction" placeholder="Enter introduction text (will appear in bold)" oninput="renderWomEmail();"></textarea>
+
+      <label>📄 Sections</label>
+      <div id="womSections" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;"></div>
+      <button class="small primary" onclick="addWomSection()" style="margin-top: 8px;">➕ Add Section</button>
+
+      <label>📎 Attachments</label>
+      <textarea id="womAttachments" placeholder="Enter attachments (one per line)" oninput="renderWomEmail();" style="min-height: 80px;"></textarea>
+
+      <div class="row" style="margin-top: 16px;">
+        <button class="primary" onclick="copyWomEmail()">📋 Copy Email</button>
+        <button class="secondary" onclick="renderWomEmail()">👁️ Update Preview</button>
+      </div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="card">
+      <h3>📧 Email Preview</h3>
+      <div id="womPreview" class="preview"></div>
+    </div>
+  </div>
+</div>
+<!-- End WOM Comms page section -->
 
 <!-- SETTINGS MODAL -->
 <div class="modal" id="settings">
@@ -1800,6 +1845,173 @@ taskShift.addEventListener("change", () => {
   renderTasks();
 });
 
+/* ---------- WOM COMMS FUNCTIONS ---------- */
+let womSections = [];
+
+function addWomSection() {
+  const sectionId = Date.now();
+  womSections.push({ id: sectionId, title: '', content: '' });
+  renderWomSections();
+}
+
+function removeWomSection(id) {
+  womSections = womSections.filter(s => s.id !== id);
+  renderWomSections();
+  renderWomEmail();
+}
+
+function renderWomSections() {
+  const container = document.getElementById('womSections');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  womSections.forEach((section, index) => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.padding = '16px';
+    div.style.marginBottom = '8px';
+    div.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <strong>Section ${index + 1}</strong>
+        <button class="danger small" onclick="removeWomSection(${section.id})">🗑️ Remove</button>
+      </div>
+      <label>Section Title</label>
+      <input type="text" class="wom-section-title" data-id="${section.id}" placeholder="Enter section title" value="${section.title}" oninput="updateWomSection(${section.id}, 'title', this.value); renderWomEmail();">
+      <label style="margin-top: 12px;">Section Content</label>
+      <textarea class="wom-section-content" data-id="${section.id}" placeholder="Enter section content (supports HTML)" oninput="updateWomSection(${section.id}, 'content', this.value); renderWomEmail();" style="min-height: 100px;">${section.content}</textarea>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function updateWomSection(id, field, value) {
+  const section = womSections.find(s => s.id === id);
+  if (section) {
+    section[field] = value;
+  }
+}
+
+function renderWomEmail() {
+  const preview = document.getElementById('womPreview');
+  if (!preview) return;
+  
+  const title = document.getElementById('womTitle')?.value || 'Taranaki WOM Comms';
+  const introduction = document.getElementById('womIntroduction')?.value || '';
+  
+  // Build sections HTML
+  let sectionsHTML = '';
+  womSections.forEach(section => {
+    if (section.title || section.content) {
+      sectionsHTML += `
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+          <tr>
+            <td>
+              ${section.title ? `<h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; font-weight: 700; color: rgb(0,0,0); margin-top: 30px; margin-bottom: 8px; border-left: 4px solid rgb(0,122,51); padding-left: 8px;">${section.title}</h2>` : ''}
+              ${section.content ? `<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; color: rgb(51,51,51); margin: 6px 0 16px; line-height: 1.65; word-wrap: break-word;">${section.content.replace(/\n/g, '<br>')}</div>` : ''}
+            </td>
+          </tr>
+        </table>
+      `;
+    }
+  });
+  
+  // Build attachments HTML
+  let attachmentsHTML = '';
+  const attachmentsText = document.getElementById('womAttachments')?.value || '';
+  const attachmentsList = attachmentsText.split('\n').filter(line => line.trim().length > 0);
+  
+  if (attachmentsList.length > 0) {
+    attachmentsHTML = `
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 20px;">
+        <tr>
+          <td>
+            <div style="border-top: 2px solid rgb(0,122,51); margin: 10px 0 25px;"></div>
+            <div style="background-color: rgb(249,249,249); border: 1px solid rgb(229,229,229); border-left: 4px solid rgb(0,122,51); border-radius: 6px; padding: 12px 15px; margin-top: 10px;">
+              <strong style="display: block; font-size: 14px; color: rgb(0,0,0); margin-bottom: 4px;">Attachments</strong>
+              <ul style="margin: 4px 0 0 0; padding-left: 20px;">
+                ${attachmentsList.map(attachment => `<li style="margin: 4px 0; font-size: 14px; color: rgb(51,51,51); word-break: break-word;">${attachment}</li>`).join('')}
+              </ul>
+            </div>
+          </td>
+        </tr>
+      </table>
+    `;
+  }
+  
+  preview.innerHTML = `
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: rgb(244,244,244);">
+  <tr>
+    <td align="center" style="padding: 20px 0;">
+      <table width="550" cellpadding="0" cellspacing="0" border="0" style="max-width: 550px; width: 100%; background-color: rgb(255,255,255); border-radius: 10px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
+        <!-- Header -->
+        <tr>
+          <td bgcolor="rgb(0,122,51)" style="padding: 24px 18px 20px; border-bottom: 3px solid rgb(0,77,32); text-align: center;">
+            <img src="https://buy.stjohn.org.nz/globalassets/images-logos/hato-hone-st-john-logo-reversed-stacked.png" alt="St John NZ" style="display: block; margin: 0 auto 10px; max-height: 70px; max-width: 70px;">
+            <h1 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 20px; font-weight: 800; margin: 0; line-height: 1.3; color: rgb(255,255,255);">${title}</h1>
+          </td>
+        </tr>
+        
+        <!-- Content -->
+        <tr>
+          <td style="padding: 30px 32px; line-height: 1.65; word-wrap: break-word;">
+            ${introduction ? `<p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; color: rgb(51,51,51); margin: 6px 0 16px;"><strong>${introduction.replace(/\n/g, '<br>')}</strong></p>` : ''}
+            ${sectionsHTML}
+            ${attachmentsHTML}
+          </td>
+        </tr>
+        
+        <!-- Footer -->
+        <tr>
+          <td bgcolor="rgb(250,250,250)" style="padding: 16px 20px; border-top: 1px solid rgb(229,229,229); text-align: center;">
+            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(85,85,85); margin: 0;">
+              This communication was sent by the Taranaki Area Management Team.<br>
+              © 2025 St John New Zealand. All rights reserved.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+  `;
+}
+
+async function copyWomEmail() {
+  renderWomEmail();
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  const preview = document.getElementById('womPreview');
+  if (!preview) return;
+  
+  const emailHTML = preview.innerHTML;
+  
+  try {
+    if (navigator.clipboard && navigator.clipboard.write) {
+      const blob = new Blob([emailHTML], { type: 'text/html' });
+      const clipboardItem = new ClipboardItem({ 'text/html': blob });
+      await navigator.clipboard.write([clipboardItem]);
+      alert("✅ Copied for Outlook Web! Paste into your email editor (Ctrl+V or Cmd+V).");
+      return;
+    }
+  } catch (err) {
+    console.log("Clipboard API failed, trying fallback");
+  }
+  
+  const r = document.createRange();
+  r.selectNodeContents(preview);
+  const s = window.getSelection();
+  s.removeAllRanges();
+  s.addRange(r);
+  
+  try {
+    document.execCommand("copy");
+    s.removeAllRanges();
+    alert("✅ Copied for Outlook Web! Paste into your email editor (Ctrl+V or Cmd+V).");
+  } catch (err) {
+    alert("⚠️ Please manually select and copy the preview content.");
+  }
+}
+
 /* ---------- NAVIGATION ---------- */
 function navigateToPage(pageId) {
   // Remove active class from all links and pages
@@ -1835,6 +2047,10 @@ renderCrewingChecks();
   loadTemporaryClosures();
   checkPlannedClosures();
 render();
+  
+  // Initialize WOM Comms
+  renderWomSections();
+  renderWomEmail();
 })();
 </script>
 
