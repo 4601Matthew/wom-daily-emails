@@ -69,16 +69,45 @@ export async function onRequest(context) {
 // - /events/roadevent/withinbounds/{minlon}/{minlat}/{maxlon}/{maxlat} - Events within bounds
 async function fetchNZTA() {
   try {
-    // Fetch ALL road events from TrafficNZ API
-    // Using the /all endpoint to get all road closures across New Zealand
-    const response = await fetch('https://trafficnz.info/service/traffic/rest/4/events/roadevent/all', {
-      headers: {
-        'Accept': 'application/json, application/xml, */*'
-      }
-    });
+    // Try different endpoint variations - the API might use different paths
+    // Based on WADL: https://trafficnz.info/service/traffic/rest/4?_wadl
+    // According to NZTA docs, the endpoint is findRoadEventsAll
+    const endpoints = [
+      'https://trafficnz.info/service/traffic/rest/4/findRoadEventsAll',
+      'https://trafficnz.info/service/traffic/rest/4/events/roadevent/all',
+      'https://trafficnz.info/service/traffic/rest/4/roadevent/all',
+      'https://trafficnz.info/service/traffic/rest/4/events/all'
+    ];
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    let response;
+    let lastError;
+    
+    // Try each endpoint until one works
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`Trying endpoint: ${endpoint}`);
+        response = await fetch(endpoint, {
+          headers: {
+            'Accept': 'application/json, application/xml, */*'
+          }
+        });
+        
+        if (response.ok) {
+          console.log(`Success with endpoint: ${endpoint}`);
+          break;
+        } else {
+          console.log(`Endpoint ${endpoint} returned status: ${response.status}`);
+          lastError = new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (err) {
+        console.log(`Endpoint ${endpoint} failed:`, err.message);
+        lastError = err;
+        continue;
+      }
+    }
+    
+    if (!response || !response.ok) {
+      throw lastError || new Error(`All endpoints failed. Last status: ${response?.status || 'unknown'}`);
     }
     
     const contentType = response.headers.get('content-type') || '';
