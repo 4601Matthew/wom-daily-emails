@@ -616,6 +616,12 @@ button:hover {
     </div>
     <!-- More home cards will be added here for future features -->
   </div>
+  
+  <div style="max-width: 1200px; margin: 40px auto; padding: 0 20px; text-align: center;">
+    <button class="secondary" onclick="navigateToPage('settings')" style="padding: 16px 32px; font-size: 16px;">
+      ⚙️ Settings
+    </button>
+  </div>
 </div>
 
 <!-- EMAIL BUILDER PAGE -->
@@ -673,7 +679,6 @@ button:hover {
 
   <div class="row" style="margin-top: 16px;">
     <button class="primary" onclick="copyEmail()">📋 Copy Email</button>
-    <button class="secondary" onclick="openSettings()">⚙️ Settings</button>
   </div>
 </div>
 
@@ -725,18 +730,19 @@ button:hover {
 </div>
 <!-- End WOM Comms page section -->
 
-<!-- SETTINGS MODAL -->
-<div class="modal" id="settings">
-  <div class="modal-content">
-    <h3>⚙️ Settings</h3>
+<!-- SETTINGS PAGE -->
+<div id="settings" class="page-section">
+  <div class="container">
+    <div class="card">
+      <h3>⚙️ Settings</h3>
 
-    <div class="tab-buttons">
-      <button class="primary small" onclick="showTab('callsignTab')">🚑 Callsigns</button>
-      <button class="primary small" onclick="showTab('tasksTab')">✅ Tasks by Day</button>
-      <button class="primary small" onclick="showTab('managersTab')">👤 Duty Managers</button>
-      <button class="primary" onclick="saveSettingsWithFeedback(this)" style="margin-left: auto;">💾 Save Settings</button>
-      <button class="danger small" onclick="closeSettings()">❌ Close</button>
-    </div>
+      <div class="tab-buttons">
+        <button class="primary small" onclick="showTab('callsignTab')">🚑 Callsigns</button>
+        <button class="primary small" onclick="showTab('tasksTab')">✅ Tasks by Day</button>
+        <button class="primary small" onclick="showTab('managersTab')">👤 Duty Managers</button>
+        <button class="primary" onclick="saveSettingsWithFeedback(this)" style="margin-left: auto;">💾 Save Settings</button>
+        <button class="secondary small" onclick="navigateToPage('home')">🏠 Back to Home</button>
+      </div>
 
     <!-- CALLSIGNS -->
     <div id="callsignTab" class="settings-section">
@@ -765,9 +771,10 @@ button:hover {
       <div id="managerList" style="margin-top: 12px;"></div>
       <button class="small primary" onclick="addManager()" style="margin-top: 12px;">➕ Add Manager</button>
     </div>
-
+    </div>
   </div>
 </div>
+<!-- End Settings page section -->
 
 <!-- PLANNED CLOSURES MODAL -->
 <div class="modal" id="plannedClosuresModal">
@@ -973,12 +980,12 @@ selectedDate.addEventListener("change", () => {
 
 /* ---------- SETTINGS ---------- */
 function openSettings(){ 
-  settings.style.display = "flex"; 
+  navigateToPage('settings');
   renderSettings(); 
 }
 
 function closeSettings(){ 
-  settings.style.display = "none"; 
+  navigateToPage('home');
 }
 
 function showTab(id){
@@ -2065,6 +2072,11 @@ function navigateToPage(pageId) {
   }
   if (page) {
     page.classList.add('active');
+    
+    // Render settings when navigating to settings page
+    if (pageId === 'settings') {
+      renderSettings();
+    }
   }
 }
 
