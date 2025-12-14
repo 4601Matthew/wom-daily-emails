@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Pre Shift Email Briefing Tool</title>
+<title>WOM/GO</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" type="image/png" href="https://raisely-images.imgix.net/st-john-community-hub/uploads/hato-hone-st-john-logo-stacked-png-c38fae.png">
 <link rel="apple-touch-icon" href="https://raisely-images.imgix.net/st-john-community-hub/uploads/hato-hone-st-john-logo-stacked-png-c38fae.png">
@@ -109,6 +109,68 @@ body {
   display: block;
 }
 
+.home-grid {
+  max-width: 1200px;
+  margin: 40px auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 20px;
+}
+
+.home-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+  border: 2px solid rgba(255,255,255,.3);
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.home-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0,0,0,.2);
+  border-color: #007A33;
+}
+
+.home-card-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007A33 0%, #004d20 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.home-card-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-card h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.home-card p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
 @media (max-width: 600px) {
   .nav-menu ul {
     flex-wrap: wrap;
@@ -117,6 +179,21 @@ body {
   .nav-menu a {
     padding: 12px 16px;
     font-size: 14px;
+  }
+  
+  .home-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 10px;
+  }
+  
+  .home-card {
+    padding: 24px 20px;
+  }
+  
+  .home-card-icon {
+    width: 100px;
+    height: 100px;
   }
 }
 
@@ -498,17 +575,34 @@ button:hover {
 
 <div class="banner">
   <h1>Hato Hone St John</h1>
-  <p>Pre Shift Email Briefing Tool</p>
+  <p>Watch / Group Operations Manager Email Bulder Tool</p>
 </div>
 
 <nav class="nav-menu">
   <ul>
-    <li><a href="#" class="nav-link active" data-page="email-builder">📧 Email Builder</a></li>
+    <li><a href="#" class="nav-link active" data-page="home">🏠 Home</a></li>
+    <li><a href="#" class="nav-link" data-page="email-builder">📧 Pre-Shift Email Briefing</a></li>
     <!-- More menu items will be added here -->
   </ul>
 </nav>
 
-<div id="email-builder" class="page-section active">
+<!-- HOME PAGE -->
+<div id="home" class="page-section active">
+  <div class="home-grid">
+    <div class="home-card" onclick="navigateToPage('email-builder')">
+      <div class="home-card-icon">
+        <img src="https://images.unsplash.com/photo-1596524430615-b46475ddff6e?w=200&h=200&fit=crop" alt="Email" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <div style="display:none; font-size: 64px;">📧</div>
+      </div>
+      <h3>Pre-Shift Email Briefing</h3>
+      <p>Create and generate daily shift briefing emails</p>
+    </div>
+    <!-- More home cards will be added here for future features -->
+  </div>
+</div>
+
+<!-- EMAIL BUILDER PAGE -->
+<div id="email-builder" class="page-section">
 <div class="container">
 
 <!-- BUILDER -->
@@ -1707,21 +1801,28 @@ taskShift.addEventListener("change", () => {
 });
 
 /* ---------- NAVIGATION ---------- */
+function navigateToPage(pageId) {
+  // Remove active class from all links and pages
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+  
+  // Add active class to corresponding link and page
+  const link = document.querySelector(`.nav-link[data-page="${pageId}"]`);
+  const page = document.getElementById(pageId);
+  
+  if (link) {
+    link.classList.add('active');
+  }
+  if (page) {
+    page.classList.add('active');
+  }
+}
+
 document.querySelectorAll('.nav-link').forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
     const pageId = link.getAttribute('data-page');
-    
-    // Remove active class from all links and pages
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-    
-    // Add active class to clicked link and corresponding page
-    link.classList.add('active');
-    const page = document.getElementById(pageId);
-    if (page) {
-      page.classList.add('active');
-    }
+    navigateToPage(pageId);
   });
 });
 
