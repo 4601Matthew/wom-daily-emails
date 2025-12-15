@@ -615,12 +615,15 @@ button:hover {
       <p>Create and generate weekly area wide communications</p>
     </div>
     <!-- More home cards will be added here for future features -->
-  </div>
-  
-  <div style="max-width: 1200px; margin: 40px auto; padding: 0 20px; text-align: center;">
-    <button class="secondary" onclick="navigateToPage('settings')" style="padding: 16px 32px; font-size: 16px;">
-      ⚙️ Settings
-    </button>
+    
+    <div class="home-card" onclick="navigateToPage('settings')">
+      <div class="home-card-icon">
+        <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=200&h=200&fit=crop" alt="Settings" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <div style="display:none; font-size: 64px;">⚙️</div>
+      </div>
+      <h3>Settings</h3>
+      <p>Configure callsigns, tasks, and duty managers</p>
+    </div>
   </div>
 </div>
 
