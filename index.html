@@ -1726,10 +1726,10 @@ function render(){
   const manager = managerIndex >= 0 && dutyManagers[managerIndex] ? dutyManagers[managerIndex] : null;
   
   // Fleet Movements
-  const fleetText = fleet.value.trim() || "No fleet movements this shift.";
+  const fleetLines = fleet.value.trim() ? fleet.value.split('\n').filter(line => line.trim()) : ["No fleet movements this shift."];
   
   // Other
-  const otherText = other.value.trim() || "Nothing extra to report.";
+  const otherLines = other.value.trim() ? other.value.split('\n').filter(line => line.trim()) : ["Nothing extra to report."];
   
   const shiftLabel = shift.value === "Night" ? "Night" : "Day";
   const currentDate = selectedDate.value ? new Date(selectedDate.value) : new Date();
@@ -1881,7 +1881,7 @@ function render(){
               <tr>
                 <td>
                   <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(0,122,51);">Fleet Movements</h2>
-                  <ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${fleetText}</li></ul>
+                  <ul style="margin: 0; padding-left: 20px;">${fleetLines.map(line => `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${line}</li>`).join('')}</ul>
                 </td>
               </tr>
             </table>
@@ -1891,7 +1891,7 @@ function render(){
               <tr>
                 <td>
                   <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(0,122,51);">Additional Information</h2>
-                  <ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${otherText}</li></ul>
+                  <ul style="margin: 0; padding-left: 20px;">${otherLines.map(line => `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${line}</li>`).join('')}</ul>
                 </td>
               </tr>
             </table>
