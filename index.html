@@ -633,7 +633,10 @@ button:hover {
 
 <!-- BUILDER -->
 <div class="card builder-card">
-  <h3>📋 Duty Email Builder</h3>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <h3 style="margin: 0; border-bottom: 2px solid #007A33; padding-bottom: 8px; flex: 1;">📋 Duty Email Builder</h3>
+    <button class="small secondary" onclick="openHelpModal('email-builder-help')" style="margin-left: 16px;">❓ Help</button>
+  </div>
 
   <label>📅 Date</label>
   <input type="date" id="selectedDate">
@@ -700,7 +703,10 @@ button:hover {
   <div class="container">
     <!-- BUILDER -->
     <div class="card builder-card">
-      <h3>📢 WOM Comms Builder</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h3 style="margin: 0; border-bottom: 2px solid #007A33; padding-bottom: 8px; flex: 1;">📢 WOM Comms Builder</h3>
+        <button class="small secondary" onclick="openHelpModal('wom-comms-help')" style="margin-left: 16px;">❓ Help</button>
+      </div>
 
       <label>📅 Date</label>
       <input type="date" id="womDate" onchange="updateWomTitleFromDate();">
@@ -778,6 +784,88 @@ button:hover {
   </div>
 </div>
 <!-- End Settings page section -->
+
+<!-- HELP MODALS -->
+<div class="modal" id="email-builder-help">
+  <div class="modal-content" style="max-width: 800px;">
+    <h3>❓ Pre-Shift Email Briefing Help</h3>
+    <div style="line-height: 1.8; color: #333;">
+      <h4 style="margin-top: 20px; color: #007A33;">Getting Started</h4>
+      <p>This tool helps you create daily shift briefing emails for your team.</p>
+      
+      <h4 style="margin-top: 20px; color: #007A33;">Step-by-Step Guide</h4>
+      <ol style="padding-left: 20px;">
+        <li><strong>Select Date:</strong> Choose the date for the briefing</li>
+        <li><strong>Select Day & Shift:</strong> Choose the day of the week and shift type (Day/Night)</li>
+        <li><strong>Greeting Comment (Optional):</strong> Add any additional comments after the automatic greeting</li>
+        <li><strong>Tasks:</strong> Tasks are automatically pulled from Settings based on the selected day and shift</li>
+        <li><strong>Extra Tasks:</strong> Add any additional tasks (one per line)</li>
+        <li><strong>Crewing Status:</strong> Select the crewing status for each vehicle (Fully/Single/Uncrewed)</li>
+        <li><strong>Crewing Notes:</strong> Add any additional crewing notes</li>
+        <li><strong>Road Closures:</strong> 
+          <ul style="margin-top: 8px; padding-left: 20px;">
+            <li>Click "Plan Road Closures" to schedule future closures</li>
+            <li>Click "Add Road Closure" for last-minute closures</li>
+          </ul>
+        </li>
+        <li><strong>Duty Manager:</strong> Select the duty manager from the dropdown</li>
+        <li><strong>Fleet Movements:</strong> Enter fleet movements or leave empty for default message</li>
+        <li><strong>Other:</strong> Add any other notes or leave empty for default message</li>
+        <li><strong>Copy Email:</strong> Click to copy the formatted email to your clipboard, then paste into Outlook</li>
+      </ol>
+      
+      <h4 style="margin-top: 20px; color: #007A33;">Tips</h4>
+      <ul style="padding-left: 20px;">
+        <li>Configure recurring tasks in Settings → Tasks by Day</li>
+        <li>Plan road closures in advance using the "Plan Road Closures" feature</li>
+        <li>The email preview updates automatically as you type</li>
+        <li>All data is saved automatically to the cloud</li>
+      </ul>
+    </div>
+    <div style="margin-top: 24px; text-align: right;">
+      <button class="primary" onclick="closeHelpModal('email-builder-help')">Got it!</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="wom-comms-help">
+  <div class="modal-content" style="max-width: 800px;">
+    <h3>❓ WOM Comms Help</h3>
+    <div style="line-height: 1.8; color: #333;">
+      <h4 style="margin-top: 20px; color: #007A33;">Getting Started</h4>
+      <p>This tool helps you create formatted communication emails for area-wide distribution.</p>
+      
+      <h4 style="margin-top: 20px; color: #007A33;">Step-by-Step Guide</h4>
+      <ol style="padding-left: 20px;">
+        <li><strong>Select Date:</strong> Choose the date - this will automatically update the title</li>
+        <li><strong>Title:</strong> The title is auto-filled with the date, but you can edit it if needed</li>
+        <li><strong>Introduction:</strong> Enter the introduction text (will appear in bold)</li>
+        <li><strong>Sections:</strong> 
+          <ul style="margin-top: 8px; padding-left: 20px;">
+            <li>Click "Add Section" to create a new section</li>
+            <li>Enter a section title and content</li>
+            <li>Content supports HTML formatting</li>
+            <li>Remove sections using the "Remove" button</li>
+          </ul>
+        </li>
+        <li><strong>Attachments:</strong> Enter attachment names (one per line) - they will appear as bullet points</li>
+        <li><strong>Update Preview:</strong> Click to refresh the preview if needed</li>
+        <li><strong>Copy Email:</strong> Click to copy the formatted email to your clipboard, then paste into Outlook</li>
+      </ol>
+      
+      <h4 style="margin-top: 20px; color: #007A33;">Tips</h4>
+      <ul style="padding-left: 20px;">
+        <li>You can add as many sections as needed</li>
+        <li>Section content supports HTML - use it for formatting, links, etc.</li>
+        <li>The preview updates automatically as you type</li>
+        <li>The Staff Committee feedback button is automatically included at the bottom</li>
+      </ul>
+    </div>
+    <div style="margin-top: 24px; text-align: right;">
+      <button class="primary" onclick="closeHelpModal('wom-comms-help')">Got it!</button>
+    </div>
+  </div>
+</div>
 
 <!-- PLANNED CLOSURES MODAL -->
 <div class="modal" id="plannedClosuresModal">
@@ -1257,6 +1345,20 @@ function showClosureTab(tabId){
     renderFutureClosures();
   } else if (tabId === "pastClosuresTab") {
     renderPastClosures();
+  }
+}
+
+function openHelpModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.style.display = "flex";
+  }
+}
+
+function closeHelpModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.style.display = "none";
   }
 }
 
