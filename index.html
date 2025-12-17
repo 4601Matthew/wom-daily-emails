@@ -761,7 +761,7 @@ button:hover {
       <input type="date" id="womDate" onchange="updateWomTitleFromDate();">
 
       <label>📋 Title</label>
-      <input type="text" id="womTitle" placeholder="e.g., Taranaki WOM Comms - 15 January 2025" value="Taranaki WOM Comms - " oninput="renderWomEmail();">
+      <input type="text" id="womTitle" placeholder="e.g., Area WOM Comms - 15 January 2025" value="" oninput="renderWomEmail();">
 
       <label>📝 Introduction</label>
       <textarea id="womIntroduction" placeholder="Enter introduction text (will appear in bold)" oninput="renderWomEmail();"></textarea>
@@ -1004,6 +1004,21 @@ function getCurrentCallsigns() {
     callsignsByArea[area] = [];
   }
   return callsignsByArea[area];
+}
+
+// Helper function to get area display name
+function getAreaDisplayName() {
+  const area = getCurrentArea();
+  const areaNames = {
+    'mt-taranaki': 'Mt Taranaki',
+    'mid-central': 'Mid Central',
+    'horowhenua': 'Horowhenua',
+    'hawkes-bay': 'Hawkes Bay',
+    'whanganui': 'Whanganui',
+    'ruapehu': 'Ruapehu',
+    'central': 'Central'
+  };
+  return areaNames[area] || area;
 }
 
 /* ---------- API FUNCTIONS ---------- */
@@ -2148,7 +2163,8 @@ function updateWomTitleFromDate() {
     const date = new Date(dateInput.value);
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
     const formattedDate = date.toLocaleDateString('en-NZ', options);
-    titleInput.value = `Taranaki WOM Comms - ${formattedDate}`;
+    const areaName = getAreaDisplayName();
+    titleInput.value = `${areaName} WOM Comms - ${formattedDate}`;
     renderWomEmail();
   }
 }
@@ -2157,7 +2173,8 @@ function renderWomEmail() {
   const preview = document.getElementById('womPreview');
   if (!preview) return;
   
-  const title = document.getElementById('womTitle')?.value || 'Taranaki WOM Comms';
+  const areaName = getAreaDisplayName();
+  const title = document.getElementById('womTitle')?.value || `${areaName} WOM Comms`;
   const introduction = document.getElementById('womIntroduction')?.value || '';
   
   // Build sections HTML
@@ -2337,6 +2354,15 @@ document.querySelectorAll('.nav-link').forEach(link => {
       renderCrewingChecks();
       render();
       updateTaskDisplay();
+      
+      // Update WOM Comms title if date is set
+      const womDateInput = document.getElementById('womDate');
+      if (womDateInput && womDateInput.value) {
+        updateWomTitleFromDate();
+      } else {
+        // Just refresh the preview
+        renderWomEmail();
+      }
     });
   }
   
