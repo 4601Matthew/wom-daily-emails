@@ -1677,17 +1677,26 @@ function closeHelpModal(modalId) {
 function renderNewClosureForm(){
   const plannedClosures = getCurrentPlannedClosures();
   newClosureForm.innerHTML = "";
-  plannedClosures.forEach((closure,i)=>{
+  
+  // Sort by start date (ascending)
+  const sorted = [...plannedClosures].sort((a, b) => {
+    const dateA = a.startDate ? new Date(a.startDate) : new Date(0);
+    const dateB = b.startDate ? new Date(b.startDate) : new Date(0);
+    return dateA - dateB;
+  });
+  
+  sorted.forEach((closure)=>{
+    const i = plannedClosures.indexOf(closure);
     const startDate = closure.startDate || "";
     const endDate = closure.endDate || "";
     newClosureForm.innerHTML += `
       <div class="closure-item">
         <div class="planned-closure-fields">
-          <input type="date" placeholder="Start Date" value="${startDate}" onchange="getCurrentPlannedClosures()[${i}].startDate=this.value">
-          <input type="date" placeholder="End Date" value="${endDate}" onchange="getCurrentPlannedClosures()[${i}].endDate=this.value">
+          <input type="date" placeholder="Start Date" value="${startDate}" onchange="getCurrentPlannedClosures()[${i}].startDate=this.value;saveDataToAPI();renderNewClosureForm()">
+          <input type="date" placeholder="End Date" value="${endDate}" onchange="getCurrentPlannedClosures()[${i}].endDate=this.value;saveDataToAPI();renderNewClosureForm()">
         </div>
         <div class="planned-closure-fields">
-          <select onchange="getCurrentPlannedClosures()[${i}].shiftType=this.value">
+          <select onchange="getCurrentPlannedClosures()[${i}].shiftType=this.value;saveDataToAPI();renderNewClosureForm()">
             <option value="Day" ${closure.shiftType==="Day"?"selected":""}>Day Shift</option>
             <option value="Night" ${closure.shiftType==="Night"?"selected":""}>Night Shift</option>
             <option value="All" ${closure.shiftType==="All"?"selected":""}>All Shifts</option>
@@ -1722,6 +1731,13 @@ function renderActiveClosures(){
     return today >= start && today <= end;
   });
   
+  // Sort by start date (ascending)
+  active.sort((a, b) => {
+    const dateA = a.startDate ? new Date(a.startDate) : new Date(0);
+    const dateB = b.startDate ? new Date(b.startDate) : new Date(0);
+    return dateA - dateB;
+  });
+  
   if (active.length === 0) {
     activeClosuresList.innerHTML = "<p>No active road closures.</p>";
   } else {
@@ -1742,6 +1758,13 @@ function renderFutureClosures(){
     if (!closure.startDate) return false;
     const start = new Date(closure.startDate);
     return start > today;
+  });
+  
+  // Sort by start date (ascending)
+  future.sort((a, b) => {
+    const dateA = a.startDate ? new Date(a.startDate) : new Date(0);
+    const dateB = b.startDate ? new Date(b.startDate) : new Date(0);
+    return dateA - dateB;
   });
   
   if (future.length === 0) {
@@ -1766,6 +1789,13 @@ function renderPastClosures(){
     return end < today;
   });
   
+  // Sort by end date (descending - most recent first)
+  past.sort((a, b) => {
+    const dateA = a.endDate ? new Date(a.endDate) : new Date(0);
+    const dateB = b.endDate ? new Date(b.endDate) : new Date(0);
+    return dateB - dateA;
+  });
+  
   if (past.length === 0) {
     pastClosuresList.innerHTML = "<p>No past road closures.</p>";
   } else {
@@ -1783,8 +1813,8 @@ function renderClosureItem(closure, i){
   return `
     <div class="closure-item">
       <div class="planned-closure-fields">
-        <input type="date" placeholder="Start Date" value="${startDate}" onchange="getCurrentPlannedClosures()[${i}].startDate=this.value">
-        <input type="date" placeholder="End Date" value="${endDate}" onchange="getCurrentPlannedClosures()[${i}].endDate=this.value">
+        <input type="date" placeholder="Start Date" value="${startDate}" onchange="getCurrentPlannedClosures()[${i}].startDate=this.value;saveDataToAPI();renderActiveClosures();renderFutureClosures();renderPastClosures();">
+        <input type="date" placeholder="End Date" value="${endDate}" onchange="getCurrentPlannedClosures()[${i}].endDate=this.value;saveDataToAPI();renderActiveClosures();renderFutureClosures();renderPastClosures();">
       </div>
       <div class="planned-closure-fields">
         <select onchange="getCurrentPlannedClosures()[${i}].shiftType=this.value">
