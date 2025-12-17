@@ -804,7 +804,7 @@ button:hover {
 
     <!-- CALLSIGNS -->
     <div id="callsignTab" class="settings-section">
-      <h4>Crewing Callsigns</h4>
+      <h4>Crewing Callsigns <span id="currentAreaLabel" style="font-size: 14px; color: #007A33; font-weight: normal;">(Current Area: Mt Taranaki)</span></h4>
       <div id="callsignList" style="margin-top: 12px;"></div>
       <button class="small primary" onclick="addCallsign()" style="margin-top: 12px;">➕ Add Callsign</button>
     </div>
@@ -964,7 +964,15 @@ const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sun
 
 // Default data
 const defaultData = {
-  callsigns: ["MIKE52","PAPA21"],
+  callsignsByArea: {
+    "mt-taranaki": ["MIKE52","PAPA21"],
+    "mid-central": [],
+    "horowhenua": [],
+    "hawkes-bay": [],
+    "whanganui": [],
+    "ruapehu": [],
+    "central": []
+  },
   dayTasks: Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
   dutyManagers: [{
     name: "Matthew Zimmerman",
@@ -977,11 +985,26 @@ const defaultData = {
   temporaryClosures: []
 };
 
-let callsigns = [...defaultData.callsigns];
+let callsignsByArea = {...defaultData.callsignsByArea};
 let dayTasks = {...defaultData.dayTasks};
 let dutyManagers = [...defaultData.dutyManagers];
 let plannedClosures = [...defaultData.plannedClosures];
 let crewingStatus = {...defaultData.crewingStatus};
+
+// Helper function to get current area
+function getCurrentArea() {
+  const areaSelect = document.getElementById('areaSelect');
+  return areaSelect ? areaSelect.value || 'mt-taranaki' : 'mt-taranaki';
+}
+
+// Helper function to get callsigns for current area
+function getCurrentCallsigns() {
+  const area = getCurrentArea();
+  if (!callsignsByArea[area]) {
+    callsignsByArea[area] = [];
+  }
+  return callsignsByArea[area];
+}
 
 /* ---------- API FUNCTIONS ---------- */
 async function loadDataFromAPI() {
@@ -996,7 +1019,20 @@ async function loadDataFromAPI() {
     if (response.ok) {
       const data = await response.json();
       if (data && Object.keys(data).length > 0) {
-        callsigns = data.callsigns || defaultData.callsigns;
+        // Migrate old callsigns format to new area-based format
+        if (data.callsigns && !data.callsignsByArea) {
+          callsignsByArea = {
+            "mt-taranaki": data.callsigns || [],
+            "mid-central": [],
+            "horowhenua": [],
+            "hawkes-bay": [],
+            "whanganui": [],
+            "ruapehu": [],
+            "central": []
+          };
+        } else {
+          callsignsByArea = data.callsignsByArea || defaultData.callsignsByArea;
+        }
         dayTasks = data.dayTasks || defaultData.dayTasks;
         dutyManagers = data.dutyManagers || defaultData.dutyManagers;
         plannedClosures = data.plannedClosures || defaultData.plannedClosures;
@@ -1028,7 +1064,7 @@ async function saveDataToAPI() {
 
   try {
     const data = {
-      callsigns,
+      callsignsByArea,
       dayTasks,
       dutyManagers,
       plannedClosures,
@@ -1047,7 +1083,27 @@ async function saveDataToAPI() {
 }
 
 function loadDataFromLocalStorage() {
-  callsigns = JSON.parse(localStorage.getItem("callsigns")) || defaultData.callsigns;
+  // Migrate old callsigns format to new area-based format
+  const oldCallsigns = JSON.parse(localStorage.getItem("callsigns"));
+  const savedCallsignsByArea = JSON.parse(localStorage.getItem("callsignsByArea"));
+  
+  if (oldCallsigns && !savedCallsignsByArea) {
+    // Migrate old format
+    callsignsByArea = {
+      "mt-taranaki": oldCallsigns || [],
+      "mid-central": [],
+      "horowhenua": [],
+      "hawkes-bay": [],
+      "whanganui": [],
+      "ruapehu": [],
+      "central": []
+    };
+    // Remove old key
+    localStorage.removeItem("callsigns");
+  } else {
+    callsignsByArea = savedCallsignsByArea || defaultData.callsignsByArea;
+  }
+  
   const savedDayTasks = JSON.parse(localStorage.getItem("dayTasks"));
   if (savedDayTasks) {
     // Migrate old format if needed
@@ -1072,7 +1128,7 @@ function loadDataFromLocalStorage() {
 }
 
 function saveDataToLocalStorage() {
-  localStorage.setItem("callsigns", JSON.stringify(callsigns));
+  localStorage.setItem("callsignsByArea", JSON.stringify(callsignsByArea));
   localStorage.setItem("dayTasks", JSON.stringify(dayTasks));
   localStorage.setItem("dutyManagers", JSON.stringify(dutyManagers));
   localStorage.setItem("plannedClosures", JSON.stringify(plannedClosures));
@@ -1136,13 +1192,31 @@ function showTab(id){
 }
 
 function renderSettings(){
-  // Render callsigns
+  // Render callsigns for current area
+  const area = getCurrentArea();
+  const callsigns = getCurrentCallsigns();
+  
+  // Update area label
+  const areaLabel = document.getElementById('currentAreaLabel');
+  if (areaLabel) {
+    const areaNames = {
+      'mt-taranaki': 'Mt Taranaki',
+      'mid-central': 'Mid Central',
+      'horowhenua': 'Horowhenua',
+      'hawkes-bay': 'Hawkes Bay',
+      'whanganui': 'Whanganui',
+      'ruapehu': 'Ruapehu',
+      'central': 'Central'
+    };
+    areaLabel.textContent = `(Current Area: ${areaNames[area] || area})`;
+  }
+  
   callsignList.innerHTML = "";
   callsigns.forEach((c,i)=>{
     callsignList.innerHTML += `
       <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'};">
-        <input value="${c}" onchange="callsigns[${i}]=this.value">
-        <button class="danger small" onclick="callsigns.splice(${i},1);renderSettings()">➖</button>
+        <input value="${c}" onchange="getCurrentCallsigns()[${i}]=this.value;saveDataToAPI();">
+        <button class="danger small" onclick="getCurrentCallsigns().splice(${i},1);saveDataToAPI();renderSettings()">➖</button>
       </div>`;
   });
   
@@ -1152,7 +1226,9 @@ function renderSettings(){
 }
 
 function addCallsign(){
+  const callsigns = getCurrentCallsigns();
   callsigns.push("");
+  saveDataToAPI();
   renderSettings();
 }
 
@@ -1364,6 +1440,7 @@ async function saveSettingsWithFeedback(button){
 /* ---------- CREWING ---------- */
 function renderCrewingChecks(){
   crewingChecks.innerHTML = "";
+  const callsigns = getCurrentCallsigns();
   callsigns.forEach(c=>{
     const status = crewingStatus[c] || "fully";
     crewingChecks.innerHTML += `
@@ -1754,6 +1831,7 @@ function render(){
   ];
 
   // Crewing
+  const callsigns = getCurrentCallsigns();
   const crewStatuses = callsigns.map(c => ({
     callsign: c,
     status: crewingStatus[c] || "fully"
@@ -2245,12 +2323,29 @@ document.querySelectorAll('.nav-link').forEach(link => {
 // Initialize - Load data from API or localStorage
 (async function init() {
   await loadDataFromAPI();
+  
+  // Set default area to Mt Taranaki
+  const areaSelect = document.getElementById('areaSelect');
+  if (areaSelect && !areaSelect.value) {
+    areaSelect.value = 'mt-taranaki';
+  }
+  
+  // Add event listener for area change
+  if (areaSelect) {
+    areaSelect.addEventListener('change', () => {
+      renderSettings();
+      renderCrewingChecks();
+      render();
+      updateTaskDisplay();
+    });
+  }
+  
   updateManagerDropdown();
   updateTaskDisplay();
-renderCrewingChecks();
+  renderCrewingChecks();
   loadTemporaryClosures();
   checkPlannedClosures();
-render();
+  render();
   
   // Initialize WOM Comms
   const womDateInput = document.getElementById('womDate');
