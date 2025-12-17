@@ -1079,13 +1079,29 @@ const defaultData = {
     "ruapehu": [],
     "central": []
   },
-  dayTasks: Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
-  dutyManagers: [{
-    name: "Matthew Zimmerman",
-    callsign: "MIKE52",
-    number: "027 214 1929",
-    email: "TaranakiDutyWom@stjohn.org.nz"
-  }],
+  dayTasksByArea: {
+    "mt-taranaki": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+    "mid-central": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+    "horowhenua": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+    "hawkes-bay": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+    "whanganui": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+    "ruapehu": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+    "central": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}]))
+  },
+  dutyManagersByArea: {
+    "mt-taranaki": [{
+      name: "Matthew Zimmerman",
+      callsign: "MIKE52",
+      number: "027 214 1929",
+      email: "TaranakiDutyWom@stjohn.org.nz"
+    }],
+    "mid-central": [],
+    "horowhenua": [],
+    "hawkes-bay": [],
+    "whanganui": [],
+    "ruapehu": [],
+    "central": []
+  },
   plannedClosuresByArea: {
     "mt-taranaki": [],
     "mid-central": [],
@@ -1100,10 +1116,28 @@ const defaultData = {
 };
 
 let callsignsByArea = {...defaultData.callsignsByArea};
-let dayTasks = {...defaultData.dayTasks};
-let dutyManagers = [...defaultData.dutyManagers];
+let dayTasksByArea = {...defaultData.dayTasksByArea};
+let dutyManagersByArea = {...defaultData.dutyManagersByArea};
 let plannedClosuresByArea = {...defaultData.plannedClosuresByArea};
 let crewingStatus = {...defaultData.crewingStatus};
+
+// Helper function to get day tasks for current area
+function getCurrentDayTasks() {
+  const area = getCurrentArea();
+  if (!dayTasksByArea[area]) {
+    dayTasksByArea[area] = Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}]));
+  }
+  return dayTasksByArea[area];
+}
+
+// Helper function to get duty managers for current area
+function getCurrentDutyManagers() {
+  const area = getCurrentArea();
+  if (!dutyManagersByArea[area]) {
+    dutyManagersByArea[area] = [];
+  }
+  return dutyManagersByArea[area];
+}
 
 // Helper function to get planned closures for current area
 function getCurrentPlannedClosures() {
@@ -1187,8 +1221,36 @@ async function loadDataFromAPI() {
           plannedClosuresByArea = data.plannedClosuresByArea || defaultData.plannedClosuresByArea;
         }
         
-        dayTasks = data.dayTasks || defaultData.dayTasks;
-        dutyManagers = data.dutyManagers || defaultData.dutyManagers;
+        // Migrate old dayTasks format to new area-based format
+        if (data.dayTasks && !data.dayTasksByArea) {
+          dayTasksByArea = {
+            "mt-taranaki": data.dayTasks || Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+            "mid-central": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+            "horowhenua": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+            "hawkes-bay": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+            "whanganui": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+            "ruapehu": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+            "central": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}]))
+          };
+        } else {
+          dayTasksByArea = data.dayTasksByArea || defaultData.dayTasksByArea;
+        }
+        
+        // Migrate old dutyManagers format to new area-based format
+        if (data.dutyManagers && !data.dutyManagersByArea) {
+          dutyManagersByArea = {
+            "mt-taranaki": data.dutyManagers || [],
+            "mid-central": [],
+            "horowhenua": [],
+            "hawkes-bay": [],
+            "whanganui": [],
+            "ruapehu": [],
+            "central": []
+          };
+        } else {
+          dutyManagersByArea = data.dutyManagersByArea || defaultData.dutyManagersByArea;
+        }
+        
         crewingStatus = data.crewingStatus || defaultData.crewingStatus;
         
         // Save temporary closures if available
@@ -1218,8 +1280,8 @@ async function saveDataToAPI() {
   try {
     const data = {
       callsignsByArea,
-      dayTasks,
-      dutyManagers,
+      dayTasksByArea,
+      dutyManagersByArea,
       plannedClosuresByArea,
       crewingStatus,
       temporaryClosures: getTemporaryClosuresData()
@@ -1257,25 +1319,59 @@ function loadDataFromLocalStorage() {
     callsignsByArea = savedCallsignsByArea || defaultData.callsignsByArea;
   }
   
-  const savedDayTasks = JSON.parse(localStorage.getItem("dayTasks"));
-  if (savedDayTasks) {
-    // Migrate old format if needed
-    dayTasks = {};
+  // Migrate old dayTasks format to new area-based format
+  const oldDayTasks = JSON.parse(localStorage.getItem("dayTasks"));
+  const savedDayTasksByArea = JSON.parse(localStorage.getItem("dayTasksByArea"));
+  
+  if (oldDayTasks && !savedDayTasksByArea) {
+    // Migrate old format
+    const migratedTasks = {};
     days.forEach(d => {
-      if (savedDayTasks[d]) {
-        if (Array.isArray(savedDayTasks[d])) {
-          dayTasks[d] = {Day: savedDayTasks[d], Night: []};
+      if (oldDayTasks[d]) {
+        if (Array.isArray(oldDayTasks[d])) {
+          migratedTasks[d] = {Day: oldDayTasks[d], Night: []};
         } else {
-          dayTasks[d] = savedDayTasks[d];
+          migratedTasks[d] = oldDayTasks[d];
         }
       } else {
-        dayTasks[d] = {Day: [], Night: []};
+        migratedTasks[d] = {Day: [], Night: []};
       }
     });
+    dayTasksByArea = {
+      "mt-taranaki": migratedTasks,
+      "mid-central": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+      "horowhenua": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+      "hawkes-bay": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+      "whanganui": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+      "ruapehu": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}])),
+      "central": Object.fromEntries(days.map(d=>[d, {Day: [], Night: []}]))
+    };
+    // Remove old key
+    localStorage.removeItem("dayTasks");
   } else {
-    dayTasks = defaultData.dayTasks;
+    dayTasksByArea = savedDayTasksByArea || defaultData.dayTasksByArea;
   }
-  dutyManagers = JSON.parse(localStorage.getItem("dutyManagers")) || defaultData.dutyManagers;
+  
+  // Migrate old dutyManagers format to new area-based format
+  const oldDutyManagers = JSON.parse(localStorage.getItem("dutyManagers"));
+  const savedDutyManagersByArea = JSON.parse(localStorage.getItem("dutyManagersByArea"));
+  
+  if (oldDutyManagers && !savedDutyManagersByArea) {
+    // Migrate old format
+    dutyManagersByArea = {
+      "mt-taranaki": oldDutyManagers || [],
+      "mid-central": [],
+      "horowhenua": [],
+      "hawkes-bay": [],
+      "whanganui": [],
+      "ruapehu": [],
+      "central": []
+    };
+    // Remove old key
+    localStorage.removeItem("dutyManagers");
+  } else {
+    dutyManagersByArea = savedDutyManagersByArea || defaultData.dutyManagersByArea;
+  }
   
   // Migrate old plannedClosures format to new area-based format
   const oldPlannedClosures = JSON.parse(localStorage.getItem("plannedClosures"));
@@ -1303,8 +1399,8 @@ function loadDataFromLocalStorage() {
 
 function saveDataToLocalStorage() {
   localStorage.setItem("callsignsByArea", JSON.stringify(callsignsByArea));
-  localStorage.setItem("dayTasks", JSON.stringify(dayTasks));
-  localStorage.setItem("dutyManagers", JSON.stringify(dutyManagers));
+  localStorage.setItem("dayTasksByArea", JSON.stringify(dayTasksByArea));
+  localStorage.setItem("dutyManagersByArea", JSON.stringify(dutyManagersByArea));
   localStorage.setItem("plannedClosuresByArea", JSON.stringify(plannedClosuresByArea));
   localStorage.setItem("crewingStatus", JSON.stringify(crewingStatus));
 }
@@ -1397,6 +1493,7 @@ function renderSettings(){
   renderTasks();
   renderManagers();
   renderCrewingChecks();
+  updateManagerDropdown();
 }
 
 function addCallsign(){
@@ -1407,6 +1504,7 @@ function addCallsign(){
 }
 
 function renderTasks(){
+  const dayTasks = getCurrentDayTasks();
   taskList.innerHTML = "";
   const dayKey = taskDay.value;
   const shiftKey = taskShift.value;
@@ -1423,33 +1521,33 @@ function renderTasks(){
     
     taskList.innerHTML += `
       <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'}; align-items: center;">
-        <select style="width: 120px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].pattern=this.value;renderTasks()">
+        <select style="width: 120px; margin-right: 8px;" onchange="getCurrentDayTasks()['${dayKey}']['${shiftKey}'][${i}].pattern=this.value;saveDataToAPI();renderTasks()">
           <option value="day" ${pattern==='day'?'selected':''}>Day of Week</option>
           <option value="date" ${pattern==='date'?'selected':''}>Date of Month</option>
           <option value="week" ${pattern==='week'?'selected':''}>Week of Month</option>
           <option value="daterange" ${pattern==='daterange'?'selected':''}>Date Range</option>
         </select>
         ${pattern === 'day' ? `
-          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
+          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="getCurrentDayTasks()['${dayKey}']['${shiftKey}'][${i}].task=this.value;saveDataToAPI()">
         ` : pattern === 'date' ? `
-          <input type="number" min="1" max="31" value="${taskObj.date || ''}" placeholder="Day (1-31)" style="width: 80px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].date=parseInt(this.value)">
-          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
+          <input type="number" min="1" max="31" value="${taskObj.date || ''}" placeholder="Day (1-31)" style="width: 80px; margin-right: 8px;" onchange="getCurrentDayTasks()['${dayKey}']['${shiftKey}'][${i}].date=parseInt(this.value);saveDataToAPI()">
+          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="getCurrentDayTasks()['${dayKey}']['${shiftKey}'][${i}].task=this.value;saveDataToAPI()">
         ` : pattern === 'week' ? `
-          <select style="width: 120px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].week=this.value">
+          <select style="width: 120px; margin-right: 8px;" onchange="getCurrentDayTasks()['${dayKey}']['${shiftKey}'][${i}].week=this.value;saveDataToAPI()">
             <option value="1st" ${taskObj.week==='1st'?'selected':''}>1st Week</option>
             <option value="2nd" ${taskObj.week==='2nd'?'selected':''}>2nd Week</option>
             <option value="3rd" ${taskObj.week==='3rd'?'selected':''}>3rd Week</option>
             <option value="4th" ${taskObj.week==='4th'?'selected':''}>4th Week</option>
             <option value="last" ${taskObj.week==='last'?'selected':''}>Last Week</option>
           </select>
-          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
+          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="getCurrentDayTasks()['${dayKey}']['${shiftKey}'][${i}].task=this.value;saveDataToAPI()">
         ` : `
-          <input type="number" min="1" max="31" value="${taskObj.startDate || ''}" placeholder="Start" style="width: 70px; margin-right: 4px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].startDate=parseInt(this.value)">
+          <input type="number" min="1" max="31" value="${taskObj.startDate || ''}" placeholder="Start" style="width: 70px; margin-right: 4px;" onchange="getCurrentDayTasks()['${dayKey}']['${shiftKey}'][${i}].startDate=parseInt(this.value);saveDataToAPI()">
           <span style="margin: 0 4px;">-</span>
-          <input type="number" min="1" max="31" value="${taskObj.endDate || ''}" placeholder="End" style="width: 70px; margin-right: 8px;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].endDate=parseInt(this.value)">
-          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="dayTasks['${dayKey}']['${shiftKey}'][${i}].task=this.value">
+          <input type="number" min="1" max="31" value="${taskObj.endDate || ''}" placeholder="End" style="width: 70px; margin-right: 8px;" onchange="getCurrentDayTasks()['${dayKey}']['${shiftKey}'][${i}].endDate=parseInt(this.value);saveDataToAPI()">
+          <input value="${taskText}" placeholder="Task description" style="flex: 1;" onchange="getCurrentDayTasks()['${dayKey}']['${shiftKey}'][${i}].task=this.value;saveDataToAPI()">
         `}
-        <button class="danger small" onclick="dayTasks['${dayKey}']['${shiftKey}'].splice(${i},1);renderTasks()">➖</button>
+        <button class="danger small" onclick="getCurrentDayTasks()['${dayKey}']['${shiftKey}'].splice(${i},1);saveDataToAPI();renderTasks()">➖</button>
       </div>`;
     
     // Ensure the task is an object
@@ -1460,6 +1558,7 @@ function renderTasks(){
 }
 
 function addTask(){
+  const dayTasks = getCurrentDayTasks();
   const dayKey = taskDay.value;
   const shiftKey = taskShift.value;
   
@@ -1468,10 +1567,12 @@ function addTask(){
   
   // Add new task as object with default pattern
   dayTasks[dayKey][shiftKey].push({task: "", pattern: "day"});
+  saveDataToAPI();
   renderTasks();
 }
 
 function updateTaskDisplay(){
+  const dayTasks = getCurrentDayTasks();
   const dayKey = day.value;
   const shiftKey = shift.value;
   const selectedDateObj = selectedDate.value ? new Date(selectedDate.value) : new Date();
@@ -1540,32 +1641,37 @@ function updateTaskDisplay(){
 }
 
 function renderManagers(){
+  const dutyManagers = getCurrentDutyManagers();
   managerList.innerHTML = "";
   dutyManagers.forEach((m,i)=>{
     managerList.innerHTML += `
       <div class="manager-item">
         <div class="manager-fields-horizontal">
-          <input placeholder="Name" value="${m.name}" onchange="dutyManagers[${i}].name=this.value">
-          <input placeholder="Callsign" value="${m.callsign}" onchange="dutyManagers[${i}].callsign=this.value">
-          <input placeholder="Number" value="${m.number}" onchange="dutyManagers[${i}].number=this.value">
-          <input placeholder="Email" value="${m.email}" onchange="dutyManagers[${i}].email=this.value">
-          <button class="danger small" onclick="dutyManagers.splice(${i},1);renderManagers()">➖ Remove</button>
+          <input placeholder="Name" value="${m.name}" onchange="getCurrentDutyManagers()[${i}].name=this.value;saveDataToAPI()">
+          <input placeholder="Callsign" value="${m.callsign}" onchange="getCurrentDutyManagers()[${i}].callsign=this.value;saveDataToAPI()">
+          <input placeholder="Number" value="${m.number}" onchange="getCurrentDutyManagers()[${i}].number=this.value;saveDataToAPI()">
+          <input placeholder="Email" value="${m.email}" onchange="getCurrentDutyManagers()[${i}].email=this.value;saveDataToAPI()">
+          <button class="danger small" onclick="getCurrentDutyManagers().splice(${i},1);saveDataToAPI();renderManagers();updateManagerDropdown()">➖ Remove</button>
         </div>
       </div>`;
   });
 }
 
 function addManager(){
+  const dutyManagers = getCurrentDutyManagers();
   dutyManagers.push({
     name: "",
     callsign: "",
     number: "",
     email: ""
   });
+  saveDataToAPI();
   renderManagers();
+  updateManagerDropdown();
 }
 
 function updateManagerDropdown(){
+  const dutyManagers = getCurrentDutyManagers();
   dutyManager.innerHTML = '<option value="">Please select...</option>';
   dutyManagers.forEach((m,i)=>{
     dutyManager.innerHTML += `<option value="${i}">${m.name || 'Unnamed'} (${m.callsign || 'No callsign'})</option>`;
@@ -1979,6 +2085,7 @@ function render(){
   
   // Tasks - handle both old format (array) and new format (object with Day/Night)
   // Also filter by date patterns
+  const dayTasks = getCurrentDayTasks();
   let allTasks = [];
   const dayKey = day.value;
   const shiftKey = shift.value;
@@ -2062,6 +2169,7 @@ function render(){
   }).filter(Boolean);
 
   // Duty Manager
+  const dutyManagers = getCurrentDutyManagers();
   const managerIndex = dutyManager.value === "" ? -1 : parseInt(dutyManager.value);
   const manager = managerIndex >= 0 && dutyManagers[managerIndex] ? dutyManagers[managerIndex] : null;
   
@@ -2612,6 +2720,7 @@ function handleAreaSelection(areaValue) {
     areaSelect.addEventListener('change', () => {
       renderSettings();
       renderCrewingChecks();
+      updateManagerDropdown();
       render();
       updateTaskDisplay();
       
