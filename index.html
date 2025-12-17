@@ -612,10 +612,101 @@ button:hover {
 @media(max-width: 1000px){
   .container{grid-template-columns:1fr;}
 }
+
+.area-selection-modal {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #FFB200 0%, #FF7900 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.area-selection-modal.hidden {
+  display: none;
+}
+
+.area-selection-content {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 48px 64px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3);
+  text-align: center;
+  min-width: 400px;
+  max-width: 90%;
+}
+
+.area-selection-content h2 {
+  margin: 0 0 24px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+}
+
+.area-selection-content select {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 8px;
+  border: 2px solid #007A33;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  background: #ffffff;
+  color: #333;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23007A33' d='M8 12L2 6h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 20px center;
+  padding-right: 50px;
+  transition: all 0.2s;
+}
+
+.area-selection-content select:hover {
+  border-color: #004d20;
+  background-color: #f0f8f4;
+}
+
+.area-selection-content select:focus {
+  outline: none;
+  border-color: #004d20;
+  box-shadow: 0 0 0 3px rgba(0,122,51,0.2);
+}
+
+.main-content {
+  display: block;
+}
+
+.main-content.hidden {
+  display: none;
+}
 </style>
 </head>
 
 <body>
+
+<!-- Area Selection Modal -->
+<div id="areaSelectionModal" class="area-selection-modal">
+  <div class="area-selection-content">
+    <h2>Please Select an Area</h2>
+    <select id="initialAreaSelect">
+      <option value="">-- Select Area --</option>
+      <option value="mt-taranaki">Mt Taranaki</option>
+      <option value="mid-central">Mid Central</option>
+      <option value="horowhenua">Horowhenua</option>
+      <option value="hawkes-bay">Hawkes Bay</option>
+      <option value="whanganui">Whanganui</option>
+      <option value="ruapehu">Ruapehu</option>
+      <option value="central">Central</option>
+    </select>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div id="mainContent" class="main-content hidden">
 
 <div class="banner">
   <h1>Hato Hone St John</h1>
@@ -2337,35 +2428,8 @@ document.querySelectorAll('.nav-link').forEach(link => {
   });
 });
 
-// Initialize - Load data from API or localStorage
-(async function init() {
-  await loadDataFromAPI();
-  
-  // Set default area to Mt Taranaki
-  const areaSelect = document.getElementById('areaSelect');
-  if (areaSelect && !areaSelect.value) {
-    areaSelect.value = 'mt-taranaki';
-  }
-  
-  // Add event listener for area change
-  if (areaSelect) {
-    areaSelect.addEventListener('change', () => {
-      renderSettings();
-      renderCrewingChecks();
-      render();
-      updateTaskDisplay();
-      
-      // Update WOM Comms title if date is set
-      const womDateInput = document.getElementById('womDate');
-      if (womDateInput && womDateInput.value) {
-        updateWomTitleFromDate();
-      } else {
-        // Just refresh the preview
-        renderWomEmail();
-      }
-    });
-  }
-  
+// Function to initialize the main application
+function initializeApp() {
   updateManagerDropdown();
   updateTaskDisplay();
   renderCrewingChecks();
@@ -2385,8 +2449,90 @@ document.querySelectorAll('.nav-link').forEach(link => {
   }
   renderWomSections();
   renderWomEmail();
+}
+
+// Function to handle area selection and show main content
+function handleAreaSelection(areaValue) {
+  if (!areaValue) return;
+  
+  // Set the area in the nav dropdown
+  const areaSelect = document.getElementById('areaSelect');
+  if (areaSelect) {
+    areaSelect.value = areaValue;
+  }
+  
+  // Save selected area to localStorage
+  localStorage.setItem('selectedArea', areaValue);
+  
+  // Hide modal and show main content
+  const modal = document.getElementById('areaSelectionModal');
+  const mainContent = document.getElementById('mainContent');
+  if (modal) modal.classList.add('hidden');
+  if (mainContent) mainContent.classList.remove('hidden');
+  
+  // Initialize the app
+  initializeApp();
+}
+
+// Initialize - Load data from API or localStorage
+(async function init() {
+  await loadDataFromAPI();
+  
+  // Check if area was previously selected
+  const savedArea = localStorage.getItem('selectedArea');
+  const areaSelect = document.getElementById('areaSelect');
+  const initialAreaSelect = document.getElementById('initialAreaSelect');
+  const modal = document.getElementById('areaSelectionModal');
+  const mainContent = document.getElementById('mainContent');
+  
+  // Add event listener for initial area selection modal
+  if (initialAreaSelect) {
+    initialAreaSelect.addEventListener('change', (e) => {
+      const selectedArea = e.target.value;
+      if (selectedArea) {
+        handleAreaSelection(selectedArea);
+      }
+    });
+  }
+  
+  // Add event listener for nav area change
+  if (areaSelect) {
+    areaSelect.addEventListener('change', () => {
+      renderSettings();
+      renderCrewingChecks();
+      render();
+      updateTaskDisplay();
+      
+      // Save selected area
+      localStorage.setItem('selectedArea', areaSelect.value);
+      
+      // Update WOM Comms title if date is set
+      const womDateInput = document.getElementById('womDate');
+      if (womDateInput && womDateInput.value) {
+        updateWomTitleFromDate();
+      } else {
+        // Just refresh the preview
+        renderWomEmail();
+      }
+    });
+  }
+  
+  // If area was previously selected, show main content; otherwise show modal
+  if (savedArea && areaSelect) {
+    areaSelect.value = savedArea;
+    if (modal) modal.classList.add('hidden');
+    if (mainContent) mainContent.classList.remove('hidden');
+    initializeApp();
+  } else {
+    // Show modal, hide main content
+    if (modal) modal.classList.remove('hidden');
+    if (mainContent) mainContent.classList.add('hidden');
+  }
 })();
 </script>
+
+</div>
+<!-- End Main Content -->
 
 </body>
 </html>
