@@ -756,6 +756,15 @@ button:hover {
     </div>
     <!-- More home cards will be added here for future features -->
     
+    <div class="home-card" onclick="navigateToPage('planned-closures')">
+      <div class="home-card-icon">
+        <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=200&h=200&fit=crop" alt="Road Closures" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <div style="display:none; font-size: 64px;">🛣️</div>
+      </div>
+      <h3>Planned Road Closures</h3>
+      <p>Manage and schedule planned road closures</p>
+    </div>
+    
     <div class="home-card home-card-new-row" onclick="navigateToPage('settings')">
       <div class="home-card-icon">
         <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=200&fit=crop" alt="Settings" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
@@ -810,7 +819,7 @@ button:hover {
   <label>🛣️ Road Closures</label>
   <div id="closures"></div>
   <div style="display: flex; gap: 8px; margin-top: 8px;">
-    <button class="small primary" onclick="openPlannedClosures()">📅 Plan Road Closures</button>
+    <button class="small primary" onclick="navigateToPage('planned-closures')">📅 Plan Road Closures</button>
   <button class="small primary" onclick="addClosure()">➕ Add Road Closure</button>
   </div>
 
@@ -925,6 +934,48 @@ button:hover {
 </div>
 <!-- End Settings page section -->
 
+<!-- PLANNED ROAD CLOSURES PAGE -->
+<div id="planned-closures" class="page-section">
+  <div style="max-width: 1400px; margin: auto; padding: 20px;">
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; border-bottom: 2px solid #007A33; padding-bottom: 8px; flex: 1;">📅 Planned Road Closures <span id="plannedClosuresAreaLabel" style="font-size: 14px; color: #007A33; font-weight: normal;">(Current Area: Mt Taranaki)</span></h3>
+        <button class="secondary small" onclick="navigateToPage('home')">🏠 Back to Home</button>
+      </div>
+      
+      <div class="tab-buttons" style="margin-top: 16px;">
+        <button class="primary small" onclick="showClosureTab('addClosureTab')">➕ Add Road Closure</button>
+        <button class="primary small" onclick="showClosureTab('activeClosuresTab')">🟢 Active</button>
+        <button class="primary small" onclick="showClosureTab('futureClosuresTab')">🔵 Future</button>
+        <button class="primary small" onclick="showClosureTab('pastClosuresTab')">⚫ Past</button>
+        <button class="primary" onclick="savePlannedClosuresWithFeedback(this)" style="margin-left: auto;">💾 Save</button>
+      </div>
+
+      <!-- Add Closure Tab -->
+      <div id="addClosureTab" class="settings-section">
+        <div id="newClosureForm" style="margin-top: 16px;"></div>
+        <button class="small primary" onclick="addPlannedClosure()" style="margin-top: 12px;">➕ Add Planned Closure</button>
+      </div>
+
+      <!-- Active Closures Tab -->
+      <div id="activeClosuresTab" class="hidden settings-section">
+        <div id="activeClosuresList" style="margin-top: 16px;"></div>
+      </div>
+
+      <!-- Future Closures Tab -->
+      <div id="futureClosuresTab" class="hidden settings-section">
+        <div id="futureClosuresList" style="margin-top: 16px;"></div>
+      </div>
+
+      <!-- Past Closures Tab -->
+      <div id="pastClosuresTab" class="hidden settings-section">
+        <div id="pastClosuresList" style="margin-top: 16px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Planned Road Closures page section -->
+
 <!-- HELP MODALS -->
 <div class="modal" id="email-builder-help">
   <div class="modal-content" style="max-width: 800px;">
@@ -1007,42 +1058,6 @@ button:hover {
   </div>
 </div>
 
-<!-- PLANNED CLOSURES MODAL -->
-<div class="modal" id="plannedClosuresModal">
-  <div class="modal-content" style="max-width: 1200px; width: 95%;">
-    <h3>📅 Planned Road Closures</h3>
-    
-    <div class="tab-buttons" style="margin-top: 16px;">
-      <button class="primary small" onclick="showClosureTab('addClosureTab')">➕ Add Road Closure</button>
-      <button class="primary small" onclick="showClosureTab('activeClosuresTab')">🟢 Active</button>
-      <button class="primary small" onclick="showClosureTab('futureClosuresTab')">🔵 Future</button>
-      <button class="primary small" onclick="showClosureTab('pastClosuresTab')">⚫ Past</button>
-      <button class="primary" onclick="savePlannedClosuresWithFeedback(this)" style="margin-left: auto;">💾 Save</button>
-      <button class="danger small" onclick="closePlannedClosures()">❌ Close</button>
-    </div>
-
-    <!-- Add Closure Tab -->
-    <div id="addClosureTab" class="settings-section">
-      <div id="newClosureForm" style="margin-top: 16px;"></div>
-      <button class="small primary" onclick="addPlannedClosure()" style="margin-top: 12px;">➕ Add Planned Closure</button>
-    </div>
-
-    <!-- Active Closures Tab -->
-    <div id="activeClosuresTab" class="hidden settings-section">
-      <div id="activeClosuresList" style="margin-top: 16px;"></div>
-    </div>
-
-    <!-- Future Closures Tab -->
-    <div id="futureClosuresTab" class="hidden settings-section">
-      <div id="futureClosuresList" style="margin-top: 16px;"></div>
-    </div>
-
-    <!-- Past Closures Tab -->
-    <div id="pastClosuresTab" class="hidden settings-section">
-      <div id="pastClosuresList" style="margin-top: 16px;"></div>
-    </div>
-  </div>
-</div>
 
 <script>
 /* ---------- CONFIGURATION ---------- */
@@ -1071,7 +1086,15 @@ const defaultData = {
     number: "027 214 1929",
     email: "TaranakiDutyWom@stjohn.org.nz"
   }],
-  plannedClosures: [],
+  plannedClosuresByArea: {
+    "mt-taranaki": [],
+    "mid-central": [],
+    "horowhenua": [],
+    "hawkes-bay": [],
+    "whanganui": [],
+    "ruapehu": [],
+    "central": []
+  },
   crewingStatus: {},
   temporaryClosures: []
 };
@@ -1079,8 +1102,17 @@ const defaultData = {
 let callsignsByArea = {...defaultData.callsignsByArea};
 let dayTasks = {...defaultData.dayTasks};
 let dutyManagers = [...defaultData.dutyManagers];
-let plannedClosures = [...defaultData.plannedClosures];
+let plannedClosuresByArea = {...defaultData.plannedClosuresByArea};
 let crewingStatus = {...defaultData.crewingStatus};
+
+// Helper function to get planned closures for current area
+function getCurrentPlannedClosures() {
+  const area = getCurrentArea();
+  if (!plannedClosuresByArea[area]) {
+    plannedClosuresByArea[area] = [];
+  }
+  return plannedClosuresByArea[area];
+}
 
 // Helper function to get current area
 function getCurrentArea() {
@@ -1139,9 +1171,24 @@ async function loadDataFromAPI() {
         } else {
           callsignsByArea = data.callsignsByArea || defaultData.callsignsByArea;
         }
+        
+        // Migrate old plannedClosures format to new area-based format
+        if (data.plannedClosures && !data.plannedClosuresByArea) {
+          plannedClosuresByArea = {
+            "mt-taranaki": data.plannedClosures || [],
+            "mid-central": [],
+            "horowhenua": [],
+            "hawkes-bay": [],
+            "whanganui": [],
+            "ruapehu": [],
+            "central": []
+          };
+        } else {
+          plannedClosuresByArea = data.plannedClosuresByArea || defaultData.plannedClosuresByArea;
+        }
+        
         dayTasks = data.dayTasks || defaultData.dayTasks;
         dutyManagers = data.dutyManagers || defaultData.dutyManagers;
-        plannedClosures = data.plannedClosures || defaultData.plannedClosures;
         crewingStatus = data.crewingStatus || defaultData.crewingStatus;
         
         // Save temporary closures if available
@@ -1173,7 +1220,7 @@ async function saveDataToAPI() {
       callsignsByArea,
       dayTasks,
       dutyManagers,
-      plannedClosures,
+      plannedClosuresByArea,
       crewingStatus,
       temporaryClosures: getTemporaryClosuresData()
     };
@@ -1229,7 +1276,28 @@ function loadDataFromLocalStorage() {
     dayTasks = defaultData.dayTasks;
   }
   dutyManagers = JSON.parse(localStorage.getItem("dutyManagers")) || defaultData.dutyManagers;
-  plannedClosures = JSON.parse(localStorage.getItem("plannedClosures")) || defaultData.plannedClosures;
+  
+  // Migrate old plannedClosures format to new area-based format
+  const oldPlannedClosures = JSON.parse(localStorage.getItem("plannedClosures"));
+  const savedPlannedClosuresByArea = JSON.parse(localStorage.getItem("plannedClosuresByArea"));
+  
+  if (oldPlannedClosures && !savedPlannedClosuresByArea) {
+    // Migrate old format
+    plannedClosuresByArea = {
+      "mt-taranaki": oldPlannedClosures || [],
+      "mid-central": [],
+      "horowhenua": [],
+      "hawkes-bay": [],
+      "whanganui": [],
+      "ruapehu": [],
+      "central": []
+    };
+    // Remove old key
+    localStorage.removeItem("plannedClosures");
+  } else {
+    plannedClosuresByArea = savedPlannedClosuresByArea || defaultData.plannedClosuresByArea;
+  }
+  
   crewingStatus = JSON.parse(localStorage.getItem("crewingStatus")) || defaultData.crewingStatus;
 }
 
@@ -1237,7 +1305,7 @@ function saveDataToLocalStorage() {
   localStorage.setItem("callsignsByArea", JSON.stringify(callsignsByArea));
   localStorage.setItem("dayTasks", JSON.stringify(dayTasks));
   localStorage.setItem("dutyManagers", JSON.stringify(dutyManagers));
-  localStorage.setItem("plannedClosures", JSON.stringify(plannedClosures));
+  localStorage.setItem("plannedClosuresByArea", JSON.stringify(plannedClosuresByArea));
   localStorage.setItem("crewingStatus", JSON.stringify(crewingStatus));
 }
 
@@ -1562,6 +1630,18 @@ function renderCrewingChecks(){
 }
 
 /* ---------- ROAD CLOSURES ---------- */
+function renderPlannedClosuresPage() {
+  // Update area label
+  const areaLabel = document.getElementById('plannedClosuresAreaLabel');
+  if (areaLabel) {
+    const areaName = getAreaDisplayName();
+    areaLabel.textContent = `(Current Area: ${areaName})`;
+  }
+  
+  // Show the add closure tab by default
+  showClosureTab('addClosureTab');
+}
+
 function showClosureTab(tabId){
   addClosureTab.classList.add("hidden");
   activeClosuresTab.classList.add("hidden");
@@ -1594,18 +1674,8 @@ function closeHelpModal(modalId) {
   }
 }
 
-function openPlannedClosures(){
-  plannedClosuresModal.style.display = "flex";
-  showClosureTab("addClosureTab");
-}
-
-function closePlannedClosures(){
-  plannedClosuresModal.style.display = "none";
-  checkPlannedClosures();
-  render();
-}
-
 function renderNewClosureForm(){
+  const plannedClosures = getCurrentPlannedClosures();
   newClosureForm.innerHTML = "";
   plannedClosures.forEach((closure,i)=>{
     const startDate = closure.startDate || "";
@@ -1613,32 +1683,33 @@ function renderNewClosureForm(){
     newClosureForm.innerHTML += `
       <div class="closure-item">
         <div class="planned-closure-fields">
-          <input type="date" placeholder="Start Date" value="${startDate}" onchange="plannedClosures[${i}].startDate=this.value">
-          <input type="date" placeholder="End Date" value="${endDate}" onchange="plannedClosures[${i}].endDate=this.value">
+          <input type="date" placeholder="Start Date" value="${startDate}" onchange="getCurrentPlannedClosures()[${i}].startDate=this.value">
+          <input type="date" placeholder="End Date" value="${endDate}" onchange="getCurrentPlannedClosures()[${i}].endDate=this.value">
         </div>
         <div class="planned-closure-fields">
-          <select onchange="plannedClosures[${i}].shiftType=this.value">
+          <select onchange="getCurrentPlannedClosures()[${i}].shiftType=this.value">
             <option value="Day" ${closure.shiftType==="Day"?"selected":""}>Day Shift</option>
             <option value="Night" ${closure.shiftType==="Night"?"selected":""}>Night Shift</option>
             <option value="All" ${closure.shiftType==="All"?"selected":""}>All Shifts</option>
           </select>
-          <input placeholder="Road name" value="${closure.roadName || ""}" onchange="plannedClosures[${i}].roadName=this.value">
+          <input placeholder="Road name" value="${closure.roadName || ""}" onchange="getCurrentPlannedClosures()[${i}].roadName=this.value">
         </div>
         <div class="planned-closure-fields">
-          <input placeholder="Type" value="${closure.type || ""}" onchange="plannedClosures[${i}].type=this.value">
-          <input placeholder="Closure info" value="${closure.closureInfo || ""}" onchange="plannedClosures[${i}].closureInfo=this.value">
+          <input placeholder="Type" value="${closure.type || ""}" onchange="getCurrentPlannedClosures()[${i}].type=this.value">
+          <input placeholder="Closure info" value="${closure.closureInfo || ""}" onchange="getCurrentPlannedClosures()[${i}].closureInfo=this.value">
         </div>
         <div class="planned-closure-fields full-width">
-          <input placeholder="Detour" value="${closure.detour || ""}" onchange="plannedClosures[${i}].detour=this.value">
+          <input placeholder="Detour" value="${closure.detour || ""}" onchange="getCurrentPlannedClosures()[${i}].detour=this.value">
         </div>
         <div style="margin-top: 8px;">
-          <button class="danger small" onclick="plannedClosures.splice(${i},1);renderNewClosureForm()">➖ Remove</button>
+          <button class="danger small" onclick="getCurrentPlannedClosures().splice(${i},1);saveDataToAPI();renderNewClosureForm()">➖ Remove</button>
         </div>
       </div>`;
   });
 }
 
 function renderActiveClosures(){
+  const plannedClosures = getCurrentPlannedClosures();
   const today = selectedDate.value ? new Date(selectedDate.value) : new Date();
   today.setHours(0,0,0,0);
   
@@ -1662,6 +1733,7 @@ function renderActiveClosures(){
 }
 
 function renderFutureClosures(){
+  const plannedClosures = getCurrentPlannedClosures();
   const today = selectedDate.value ? new Date(selectedDate.value) : new Date();
   today.setHours(0,0,0,0);
   
@@ -1683,6 +1755,7 @@ function renderFutureClosures(){
 }
 
 function renderPastClosures(){
+  const plannedClosures = getCurrentPlannedClosures();
   const today = selectedDate.value ? new Date(selectedDate.value) : new Date();
   today.setHours(23,59,59,999);
   
@@ -1704,36 +1777,38 @@ function renderPastClosures(){
 }
 
 function renderClosureItem(closure, i){
+  const plannedClosures = getCurrentPlannedClosures();
   const startDate = closure.startDate || "";
   const endDate = closure.endDate || "";
   return `
     <div class="closure-item">
       <div class="planned-closure-fields">
-        <input type="date" placeholder="Start Date" value="${startDate}" onchange="plannedClosures[${i}].startDate=this.value">
-        <input type="date" placeholder="End Date" value="${endDate}" onchange="plannedClosures[${i}].endDate=this.value">
+        <input type="date" placeholder="Start Date" value="${startDate}" onchange="getCurrentPlannedClosures()[${i}].startDate=this.value">
+        <input type="date" placeholder="End Date" value="${endDate}" onchange="getCurrentPlannedClosures()[${i}].endDate=this.value">
       </div>
       <div class="planned-closure-fields">
-        <select onchange="plannedClosures[${i}].shiftType=this.value">
+        <select onchange="getCurrentPlannedClosures()[${i}].shiftType=this.value">
           <option value="Day" ${closure.shiftType==="Day"?"selected":""}>Day Shift</option>
           <option value="Night" ${closure.shiftType==="Night"?"selected":""}>Night Shift</option>
           <option value="All" ${closure.shiftType==="All"?"selected":""}>All Shifts</option>
         </select>
-        <input placeholder="Road name" value="${closure.roadName || ""}" onchange="plannedClosures[${i}].roadName=this.value">
+        <input placeholder="Road name" value="${closure.roadName || ""}" onchange="getCurrentPlannedClosures()[${i}].roadName=this.value">
       </div>
       <div class="planned-closure-fields">
-        <input placeholder="Type" value="${closure.type || ""}" onchange="plannedClosures[${i}].type=this.value">
-        <input placeholder="Closure info" value="${closure.closureInfo || ""}" onchange="plannedClosures[${i}].closureInfo=this.value">
+        <input placeholder="Type" value="${closure.type || ""}" onchange="getCurrentPlannedClosures()[${i}].type=this.value">
+        <input placeholder="Closure info" value="${closure.closureInfo || ""}" onchange="getCurrentPlannedClosures()[${i}].closureInfo=this.value">
       </div>
       <div class="planned-closure-fields full-width">
-        <input placeholder="Detour" value="${closure.detour || ""}" onchange="plannedClosures[${i}].detour=this.value">
+        <input placeholder="Detour" value="${closure.detour || ""}" onchange="getCurrentPlannedClosures()[${i}].detour=this.value">
       </div>
       <div style="margin-top: 8px;">
-        <button class="danger small" onclick="plannedClosures.splice(${i},1);renderNewClosureForm();renderActiveClosures();renderFutureClosures();renderPastClosures();">➖ Remove</button>
+        <button class="danger small" onclick="getCurrentPlannedClosures().splice(${i},1);saveDataToAPI();renderNewClosureForm();renderActiveClosures();renderFutureClosures();renderPastClosures();">➖ Remove</button>
       </div>
     </div>`;
 }
 
 function addPlannedClosure(){
+  const plannedClosures = getCurrentPlannedClosures();
   plannedClosures.push({
     startDate: "",
     endDate: "",
@@ -1743,6 +1818,7 @@ function addPlannedClosure(){
     closureInfo: "",
     detour: ""
   });
+  saveDataToAPI();
   renderNewClosureForm();
 }
 
@@ -1796,6 +1872,7 @@ function checkPlannedClosures(){
   // This ensures we only show closures for the selected date
   closures.innerHTML = "";
   
+  const plannedClosures = getCurrentPlannedClosures();
   plannedClosures.forEach(closure => {
     if (!closure.startDate || !closure.endDate) return;
     
@@ -2417,6 +2494,11 @@ function navigateToPage(pageId) {
     if (pageId === 'settings') {
       renderSettings();
     }
+    
+    // Render planned closures when navigating to planned closures page
+    if (pageId === 'planned-closures') {
+      renderPlannedClosuresPage();
+    }
   }
 }
 
@@ -2505,6 +2587,12 @@ function handleAreaSelection(areaValue) {
       
       // Save selected area
       localStorage.setItem('selectedArea', areaSelect.value);
+      
+      // Update planned closures page if it's active
+      const plannedClosuresPage = document.getElementById('planned-closures');
+      if (plannedClosuresPage && plannedClosuresPage.classList.contains('active')) {
+        renderPlannedClosuresPage();
+      }
       
       // Update WOM Comms title if date is set
       const womDateInput = document.getElementById('womDate');
