@@ -171,6 +171,12 @@ body {
   line-height: 1.5;
 }
 
+.home-card-new-row {
+  grid-column: 1 / -1;
+  max-width: 280px;
+  justify-self: start;
+}
+
 @media (max-width: 600px) {
   .nav-menu ul {
     flex-wrap: wrap;
@@ -616,9 +622,9 @@ button:hover {
     </div>
     <!-- More home cards will be added here for future features -->
     
-    <div class="home-card" onclick="navigateToPage('settings')">
+    <div class="home-card home-card-new-row" onclick="navigateToPage('settings')">
       <div class="home-card-icon">
-        <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=200&h=200&fit=crop" alt="Settings" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=200&fit=crop" alt="Settings" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
         <div style="display:none; font-size: 64px;">⚙️</div>
       </div>
       <h3>Settings</h3>
