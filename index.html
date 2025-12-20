@@ -3396,15 +3396,15 @@ function renderHandoverEmail() {
   let headerInfo = '';
   if (date || getValue('handoverShift') || getValue('handoverWatch') || getValue('handoverWatchManager') || getValue('handoverDDM')) {
     headerInfo = `
-      <table width="100%" cellpadding="10" cellspacing="0" border="0" bgcolor="#f8f9fa" style="margin-bottom: 25px; border: 1px solid rgb(229,229,229);">
+      <table width="100%" cellpadding="8" cellspacing="0" border="0" style="background-color: rgb(249,249,249); border: 1px solid rgb(229,229,229); border-radius: 6px; margin-bottom: 20px;">
         <tr>
-          <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(51,51,51); padding: 6px 8px;"><strong>Date:</strong> ${dateStr}</td>
-          <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(51,51,51); padding: 6px 8px;"><strong>Shift:</strong> ${getValue('handoverShift')}</td>
-          <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(51,51,51); padding: 6px 8px;"><strong>Watch:</strong> ${getValue('handoverWatch')}</td>
+          <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(51,51,51); padding: 4px;"><strong>Date:</strong> ${dateStr}</td>
+          <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(51,51,51); padding: 4px;"><strong>Shift:</strong> ${getValue('handoverShift')}</td>
+          <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(51,51,51); padding: 4px;"><strong>Watch:</strong> ${getValue('handoverWatch')}</td>
         </tr>
         <tr>
-          <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(51,51,51); padding: 6px 8px;"><strong>Watch Manager:</strong> ${getValue('handoverWatchManager')}</td>
-          <td colspan="2" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(51,51,51); padding: 6px 8px;"><strong>DDM:</strong> ${getValue('handoverDDM')}</td>
+          <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(51,51,51); padding: 4px;"><strong>Watch Manager:</strong> ${getValue('handoverWatchManager')}</td>
+          <td colspan="2" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(51,51,51); padding: 4px;"><strong>DDM:</strong> ${getValue('handoverDDM')}</td>
         </tr>
       </table>
     `;
@@ -3412,24 +3412,24 @@ function renderHandoverEmail() {
   
   // Build summary columns
   let summaryHTML = `
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
       <tr>
-        <td width="33%" bgcolor="#555555" style="padding: 12px; vertical-align: top;">
-          <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin: 0 0 10px 0;">SICKNESS</p>
-          <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-size: 13px; margin: 6px 0; line-height: 1.5;">Total Sick Calls: ${getValue('handoverSickTotal') || '0'}</p>
-          <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-size: 13px; margin: 6px 0; line-height: 1.5;">Total Sick Calls - Staff on shift: ${getValue('handoverSickStaff') || '0'}</p>
+        <td width="33%" style="background-color: rgb(85,85,85); padding: 10px; vertical-align: top;">
+          <div style="color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin-bottom: 8px;">SICKNESS</div>
+          <div style="color: rgb(255,255,255); font-size: 13px;">Total Sick Calls: ${getValue('handoverSickTotal') || '0'}</div>
+          <div style="color: rgb(255,255,255); font-size: 13px;">Total Sick Calls - Staff on shift: ${getValue('handoverSickStaff') || '0'}</div>
         </td>
-        <td width="33%" bgcolor="#555555" style="padding: 12px; vertical-align: top;">
-          <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin: 0 0 10px 0;">OTHER</p>
-          <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-size: 13px; margin: 6px 0; line-height: 1.5;">Total # Personnel Called: ${getValue('handoverPersonnelCalled') || ''}</p>
-          <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-size: 13px; margin: 6px 0; line-height: 1.5;">Volunteers utilised: ${getValue('handoverVolunteers') || ''}</p>
-          <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-size: 13px; margin: 6px 0; line-height: 1.5;">Total Spare Ambulances: ${getValue('handoverSpareAmbulances') || ''}</p>
+        <td width="33%" style="background-color: rgb(85,85,85); padding: 10px; vertical-align: top;">
+          <div style="color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin-bottom: 8px;">OTHER</div>
+          <div style="color: rgb(255,255,255); font-size: 13px;">Total # Personnel Called: ${getValue('handoverPersonnelCalled') || ''}</div>
+          <div style="color: rgb(255,255,255); font-size: 13px;">Volunteers utilised: ${getValue('handoverVolunteers') || ''}</div>
+          <div style="color: rgb(255,255,255); font-size: 13px;">Total Spare Ambulances: ${getValue('handoverSpareAmbulances') || ''}</div>
         </td>
-        <td width="34%" bgcolor="#555555" style="padding: 12px; vertical-align: top;">
-          <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin: 0 0 10px 0;">STATUS BOARD</p>
-          <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-size: 13px; margin: 6px 0; line-height: 1.5;">EAS Demand: ${getValue('handoverEASDemand') || ''}</p>
-          <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-size: 13px; margin: 6px 0; line-height: 1.5;">LOCAL ED: ${getValue('handoverLocalED') || ''}</p>
-          <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-size: 13px; margin: 6px 0; line-height: 1.5;">OTHER HOSP: ${getValue('handoverOtherHosp') || ''}</p>
+        <td width="34%" style="background-color: rgb(85,85,85); padding: 10px; vertical-align: top;">
+          <div style="color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin-bottom: 8px;">STATUS BOARD</div>
+          <div style="color: rgb(255,255,255); font-size: 13px;">EAS Demand: ${getValue('handoverEASDemand') || ''}</div>
+          <div style="color: rgb(255,255,255); font-size: 13px;">LOCAL ED: ${getValue('handoverLocalED') || ''}</div>
+          <div style="color: rgb(255,255,255); font-size: 13px;">OTHER HOSP: ${getValue('handoverOtherHosp') || ''}</div>
         </td>
       </tr>
     </table>
@@ -3440,17 +3440,15 @@ function renderHandoverEmail() {
   const narrative = getValue('handoverNarrative');
   if (getValue('handoverEDNotifications') || getValue('handoverAWA') || getValue('handoverRapidOffload') || narrative) {
     generalOpsHTML = `
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
         <tr>
-          <td bgcolor="#555555" style="padding: 12px; width: 40px; vertical-align: middle;">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 600; font-size: 12px; margin: 0; writing-mode: vertical-rl; text-orientation: mixed;">GENERAL OPERATIONS</p>
-          </td>
+          <td style="background-color: rgb(85,85,85); padding: 10px; color: rgb(255,255,255); font-weight: 600; font-size: 14px; writing-mode: vertical-rl; text-orientation: mixed; width: 30px; vertical-align: middle;">GENERAL OPERATIONS</td>
           <td style="padding: 15px; border: 1px solid rgb(229,229,229);">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 600; font-size: 14px; margin: 0 0 10px 0; color: rgb(0,0,0);">Patient Flow:</p>
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 6px 0; color: rgb(51,51,51); line-height: 1.6;">${getValue('handoverEDNotifications') || ''}</p>
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 6px 0; color: rgb(51,51,51); line-height: 1.6;">AWA was set up - ${getValue('handoverAWA') || 'No'}</p>
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 6px 0 15px 0; color: rgb(51,51,51); line-height: 1.6;">Rapid offload invoked - ${getValue('handoverRapidOffload') || 'No'}</p>
-            ${narrative ? `<p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 600; font-size: 14px; margin: 15px 0 8px 0; color: rgb(0,0,0);">Narrative/Updates:</p><p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 0; color: rgb(51,51,51); line-height: 1.7; white-space: pre-wrap;">${narrative.replace(/\n/g, '<br>')}</p>` : ''}
+            <div style="font-weight: 600; margin-bottom: 10px;">Patient Flow:</div>
+            <div style="font-size: 14px; margin-bottom: 8px;">${getValue('handoverEDNotifications') || ''}</div>
+            <div style="font-size: 14px; margin-bottom: 8px;">AWA was set up - ${getValue('handoverAWA') || 'No'}</div>
+            <div style="font-size: 14px; margin-bottom: 12px;">Rapid offload invoked - ${getValue('handoverRapidOffload') || 'No'}</div>
+            ${narrative ? `<div style="font-weight: 600; margin-top: 12px; margin-bottom: 8px;">Narrative/Updates:</div><div style="font-size: 14px; white-space: pre-wrap; line-height: 1.6;">${narrative.replace(/\n/g, '<br>')}</div>` : ''}
           </td>
         </tr>
       </table>
@@ -3461,17 +3459,15 @@ function renderHandoverEmail() {
   let rostersHTML = '';
   if (getValue('handoverRosterTonight') || getValue('handoverRosterTomorrow') || getValue('handoverOncomingCrewed')) {
     rostersHTML = `
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
         <tr>
-          <td bgcolor="#555555" style="padding: 12px;">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin: 0;">ROSTERS - NEXT 24 HOURS STATUS</p>
-          </td>
+          <td style="background-color: rgb(85,85,85); padding: 10px; color: rgb(255,255,255); font-weight: 600; font-size: 14px;">ROSTERS - NEXT 24 HOURS STATUS</td>
         </tr>
         <tr>
           <td style="padding: 15px; border: 1px solid rgb(229,229,229); border-top: none;">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 8px 0; color: rgb(51,51,51); line-height: 1.6;"><strong>Tonight:</strong> ${getValue('handoverRosterTonight') || ''}</p>
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 8px 0; color: rgb(51,51,51); line-height: 1.6;"><strong>Tomorrow:</strong> ${getValue('handoverRosterTomorrow') || ''}</p>
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 8px 0; color: rgb(51,51,51); line-height: 1.6;">Oncoming Shift Fully Crewed: ${getValue('handoverOncomingCrewed') || ''}</p>
+            <div style="font-size: 14px; margin-bottom: 8px;"><strong>Tonight:</strong> ${getValue('handoverRosterTonight') || ''}</div>
+            <div style="font-size: 14px; margin-bottom: 8px;"><strong>Tomorrow:</strong> ${getValue('handoverRosterTomorrow') || ''}</div>
+            <div style="font-size: 14px;">Oncoming Shift Fully Crewed: ${getValue('handoverOncomingCrewed') || ''}</div>
           </td>
         </tr>
       </table>
@@ -3483,16 +3479,12 @@ function renderHandoverEmail() {
   const reportableEvents = getValue('handoverReportableEvents');
   if (!getValue('handoverReportableNothing') && reportableEvents) {
     reportableHTML = `
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
         <tr>
-          <td bgcolor="#555555" style="padding: 12px;">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin: 0;">REPORTABLE EVENTS</p>
-          </td>
+          <td style="background-color: rgb(85,85,85); padding: 10px; color: rgb(255,255,255); font-weight: 600; font-size: 14px;">REPORTABLE EVENTS</td>
         </tr>
         <tr>
-          <td style="padding: 15px; border: 1px solid rgb(229,229,229); border-top: none;">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 0; color: rgb(51,51,51); line-height: 1.7; white-space: pre-wrap;">${reportableEvents.replace(/\n/g, '<br>')}</p>
-          </td>
+          <td style="padding: 15px; border: 1px solid rgb(229,229,229); border-top: none; font-size: 14px; white-space: pre-wrap; line-height: 1.6;">${reportableEvents.replace(/\n/g, '<br>')}</td>
         </tr>
       </table>
     `;
@@ -3503,16 +3495,12 @@ function renderHandoverEmail() {
   const transferTasks = getValue('handoverTransferTasks');
   if (!getValue('handoverTransferNothing') && transferTasks) {
     transferHTML = `
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
         <tr>
-          <td bgcolor="#555555" style="padding: 12px;">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin: 0;">PATIENT TRANSFER TASKS</p>
-          </td>
+          <td style="background-color: rgb(85,85,85); padding: 10px; color: rgb(255,255,255); font-weight: 600; font-size: 14px;">PATIENT TRANSFER TASKS</td>
         </tr>
         <tr>
-          <td style="padding: 15px; border: 1px solid rgb(229,229,229); border-top: none;">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 0; color: rgb(51,51,51); line-height: 1.7; white-space: pre-wrap;">${transferTasks.replace(/\n/g, '<br>')}</p>
-          </td>
+          <td style="padding: 15px; border: 1px solid rgb(229,229,229); border-top: none; font-size: 14px; white-space: pre-wrap; line-height: 1.6;">${transferTasks.replace(/\n/g, '<br>')}</td>
         </tr>
       </table>
     `;
@@ -3523,24 +3511,22 @@ function renderHandoverEmail() {
   const fleetAvailable = getValue('handoverFleetAvailable');
   const fleetNotAvailable = getValue('handoverFleetNotAvailable');
   if (fleetAvailable || fleetNotAvailable) {
-    const availableList = fleetAvailable.split('\n').filter(l => l.trim()).map(l => `<p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 4px 0; color: rgb(51,51,51); line-height: 1.5;">${l.trim()}</p>`).join('');
-    const notAvailableList = fleetNotAvailable.split('\n').filter(l => l.trim()).map(l => `<p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 4px 0; color: rgb(51,51,51); line-height: 1.5;">${l.trim()}</p>`).join('');
+    const availableList = fleetAvailable.split('\n').filter(l => l.trim()).map(l => `<div style="margin: 4px 0;">${l.trim()}</div>`).join('');
+    const notAvailableList = fleetNotAvailable.split('\n').filter(l => l.trim()).map(l => `<div style="margin: 4px 0;">${l.trim()}</div>`).join('');
     fleetHTML = `
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
         <tr>
-          <td bgcolor="#555555" style="padding: 12px; width: 40px; vertical-align: middle;">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 600; font-size: 12px; margin: 0; writing-mode: vertical-rl; text-orientation: mixed;">FLEET</p>
-          </td>
+          <td style="background-color: rgb(85,85,85); padding: 10px; color: rgb(255,255,255); font-weight: 600; font-size: 14px; writing-mode: vertical-rl; text-orientation: mixed; width: 30px; vertical-align: middle;">FLEET</td>
           <td style="padding: 15px; border: 1px solid rgb(229,229,229);">
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td width="50%" style="padding-right: 10px; vertical-align: top;">
-                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(40,167,69); font-weight: 600; font-size: 14px; margin: 0 0 10px 0;">AVAILABLE</p>
-                  ${availableList || '<p style="font-family: \'Helvetica Neue\', Helvetica, Arial, sans-serif; font-size: 14px; margin: 0; color: rgb(153,153,153);">None</p>'}
+                  <div style="color: rgb(40,167,69); font-weight: 600; margin-bottom: 8px;">AVAILABLE</div>
+                  ${availableList || '<div style="font-size: 14px; color: rgb(153,153,153);">None</div>'}
                 </td>
                 <td width="50%" style="padding-left: 10px; vertical-align: top;">
-                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(220,53,69); font-weight: 600; font-size: 14px; margin: 0 0 10px 0;">NOT AVAILABLE</p>
-                  ${notAvailableList || '<p style="font-family: \'Helvetica Neue\', Helvetica, Arial, sans-serif; font-size: 14px; margin: 0; color: rgb(153,153,153);">None</p>'}
+                  <div style="color: rgb(220,53,69); font-weight: 600; margin-bottom: 8px;">NOT AVAILABLE</div>
+                  ${notAvailableList || '<div style="font-size: 14px; color: rgb(153,153,153);">None</div>'}
                 </td>
               </tr>
             </table>
@@ -3555,16 +3541,12 @@ function renderHandoverEmail() {
   const infrastructure = getValue('handoverInfrastructure');
   if (infrastructure) {
     infrastructureHTML = `
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
         <tr>
-          <td bgcolor="#555555" style="padding: 12px;">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin: 0;">STATION INFRASTRUCTURE / PROCESS / SUPPLY / MISCELLANEOUS / FLEET CONTINUED</p>
-          </td>
+          <td style="background-color: rgb(85,85,85); padding: 10px; color: rgb(255,255,255); font-weight: 600; font-size: 14px;">STATION INFRASTRUCTURE / PROCESS / SUPPLY / MISCELLANEOUS / FLEET CONTINUED</td>
         </tr>
         <tr>
-          <td style="padding: 15px; border: 1px solid rgb(229,229,229); border-top: none;">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 0; color: rgb(51,51,51); line-height: 1.7; white-space: pre-wrap;">${infrastructure.replace(/\n/g, '<br>')}</p>
-          </td>
+          <td style="padding: 15px; border: 1px solid rgb(229,229,229); border-top: none; font-size: 14px; white-space: pre-wrap; line-height: 1.6;">${infrastructure.replace(/\n/g, '<br>')}</td>
         </tr>
       </table>
     `;
@@ -3576,33 +3558,25 @@ function renderHandoverEmail() {
   const equipment = getValue('handoverEquipment');
   if ((!getValue('handoverLeaveNothing') && leave) || (!getValue('handoverEquipmentNothing') && equipment)) {
     leaveEquipmentHTML = `
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
         <tr>
           <td width="50%" style="padding-right: 10px; vertical-align: top;">
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td bgcolor="#555555" style="padding: 12px;">
-                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin: 0;">LEAVE - Sickness / ACC</p>
-                </td>
+                <td style="background-color: rgb(85,85,85); padding: 10px; color: rgb(255,255,255); font-weight: 600; font-size: 14px;">LEAVE - Sickness / ACC</td>
               </tr>
               <tr>
-                <td style="padding: 15px; border: 1px solid rgb(229,229,229); border-top: none;">
-                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 0; color: rgb(51,51,51); line-height: 1.7; white-space: pre-wrap;">${!getValue('handoverLeaveNothing') && leave ? leave.replace(/\n/g, '<br>') : 'Nothing to Report'}</p>
-                </td>
+                <td style="padding: 15px; border: 1px solid rgb(229,229,229); border-top: none; font-size: 14px; white-space: pre-wrap; line-height: 1.6;">${!getValue('handoverLeaveNothing') && leave ? leave.replace(/\n/g, '<br>') : 'Nothing to Report'}</td>
               </tr>
             </table>
           </td>
           <td width="50%" style="padding-left: 10px; vertical-align: top;">
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td bgcolor="#555555" style="padding: 12px;">
-                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 600; font-size: 14px; margin: 0;">Equipment FAULTS</p>
-                </td>
+                <td style="background-color: rgb(85,85,85); padding: 10px; color: rgb(255,255,255); font-weight: 600; font-size: 14px;">Equipment FAULTS</td>
               </tr>
               <tr>
-                <td style="padding: 15px; border: 1px solid rgb(229,229,229); border-top: none;">
-                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; margin: 0; color: rgb(51,51,51); line-height: 1.7; white-space: pre-wrap;">${!getValue('handoverEquipmentNothing') && equipment ? equipment.replace(/\n/g, '<br>') : 'Nothing to Report'}</p>
-                </td>
+                <td style="padding: 15px; border: 1px solid rgb(229,229,229); border-top: none; font-size: 14px; white-space: pre-wrap; line-height: 1.6;">${!getValue('handoverEquipmentNothing') && equipment ? equipment.replace(/\n/g, '<br>') : 'Nothing to Report'}</td>
               </tr>
             </table>
           </td>
@@ -3615,22 +3589,22 @@ function renderHandoverEmail() {
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: rgb(244,244,244);">
   <tr>
     <td align="center" style="padding: 20px 0;">
-      <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: rgb(255,255,255); border: 2px solid rgb(0,122,51);">
+      <table width="700" cellpadding="0" cellspacing="0" border="0" style="max-width: 700px; width: 100%; background-color: rgb(255,255,255); border: 2px solid rgb(0,122,51); border-radius: 10px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
         <!-- Header -->
         <tr>
-          <td bgcolor="#dc3545" style="padding: 12px 20px; text-align: center;">
-            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 700; font-size: 14px; letter-spacing: 1px; margin: 0;">STAFF IN CONFIDENCE</p>
+          <td style="background-color: rgb(220,53,69); padding: 12px 20px; text-align: center;">
+            <div style="color: rgb(255,255,255); font-weight: 700; font-size: 16px; letter-spacing: 1px;">STAFF IN CONFIDENCE</div>
           </td>
         </tr>
         <tr>
-          <td bgcolor="#000000" style="padding: 18px 20px; text-align: center;">
-            <h1 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: rgb(255,255,255); font-weight: 700; font-size: 18px; margin: 0; line-height: 1.3;">${areaName.toUpperCase()} WATCH OPERATIONS MANAGER WATCH REPORT</h1>
+          <td style="background-color: rgb(0,0,0); padding: 16px 20px; text-align: center;">
+            <div style="color: rgb(255,255,255); font-weight: 700; font-size: 18px;">${areaName.toUpperCase()} WATCH OPERATIONS MANAGER WATCH REPORT</div>
           </td>
         </tr>
         
         <!-- Content -->
         <tr>
-          <td style="padding: 30px 32px; line-height: 1.65; word-wrap: break-word;">
+          <td style="padding: 25px; line-height: 1.65; word-wrap: break-word;">
             ${headerInfo}
             ${summaryHTML}
             ${generalOpsHTML}
@@ -3645,7 +3619,7 @@ function renderHandoverEmail() {
         
         <!-- Footer -->
         <tr>
-          <td bgcolor="#fafafa" style="padding: 16px 20px; border-top: 1px solid rgb(229,229,229); text-align: center;">
+          <td style="background-color: rgb(250,250,250); padding: 16px 20px; border-top: 1px solid rgb(229,229,229); text-align: center;">
             <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(85,85,85); margin: 0;">
               This communication was sent by the ${getManagementTeamName()}.<br>
               © 2025 St John New Zealand. All rights reserved.
