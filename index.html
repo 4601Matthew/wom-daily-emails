@@ -457,7 +457,7 @@ button:hover {
 
 .crewing-row {
   display: grid;
-  grid-template-columns: 120px 1fr 1fr;
+  grid-template-columns: 100px 1fr 1fr;
   gap: 12px;
   align-items: center;
   margin-top: 8px;
@@ -2222,26 +2222,25 @@ function render(){
   };
 
   // Format crewing HTML with inline styles for Outlook
-  // Only show vehicles that are NOT fully crewed and NOT N/A
-  const notFullyCrewed = callsigns.filter(c => {
+  // Show all vehicles except those with "N/A" status
+  const vehiclesToShow = callsigns.filter(c => {
     const status = crewingStatus[c] || "fully";
-    return status !== "fully" && status !== "N/A";
+    return status !== "N/A";
   });
   
   let crewingHTMLFormatted = "";
-  if (notFullyCrewed.length === 0) {
-    crewingHTMLFormatted = `<ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">All vehicles are fully crewed.</li></ul>`;
+  if (vehiclesToShow.length === 0) {
+    crewingHTMLFormatted = `<ul style="margin: 0; padding-left: 20px;"><li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">No vehicles to display.</li></ul>`;
   } else {
     crewingHTMLFormatted = `<ul style="margin: 0; padding-left: 20px;">`;
-    notFullyCrewed.forEach(c => {
+    vehiclesToShow.forEach(c => {
       const status = crewingStatus[c] || "fully";
       const atp = atpStatus[c] || "N/A";
-      let statusText = status === "single" ? "Single Crewed" : "Uncrewed";
-      let statusColor = status === "single" ? "rgb(255,140,0)" : "rgb(220,53,69)"; // Orange for single, red for uncrewed
+      let statusText = status === "fully" ? "Fully Crewed" : status === "single" ? "Single Crewed" : "Uncrewed";
+      let statusColor = status === "fully" ? "rgb(0,122,51)" : status === "single" ? "rgb(255,140,0)" : "rgb(220,53,69)"; // Green for fully, orange for single, red for uncrewed
       let atpText = atp !== "N/A" ? ` (ATP: ${atp})` : "";
       crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${c} - <span style="color: ${statusColor};"><strong>${statusText}</strong></span>${atpText}</li>`;
     });
-    crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">All other vehicles are fully crewed.</li>`;
     crewingHTMLFormatted += `</ul>`;
   }
   
