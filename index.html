@@ -718,6 +718,7 @@ button:hover {
     <li><a href="#" class="nav-link active" data-page="home">🏠 Home</a></li>
     <li><a href="#" class="nav-link" data-page="email-builder">📧 Pre-Shift Email Briefing</a></li>
     <li><a href="#" class="nav-link" data-page="wom-comms">📢 WOM Comms</a></li>
+    <li><a href="#" class="nav-link" data-page="important-update">⚠️ Important Update</a></li>
     <!-- More menu items will be added here -->
     <li style="margin-left: auto;">
       <select id="areaSelect" style="margin: 0;">
@@ -753,6 +754,15 @@ button:hover {
       </div>
       <h3>WOM Comms</h3>
       <p>Create and generate weekly area wide communications</p>
+    </div>
+    
+    <div class="home-card" onclick="navigateToPage('important-update')">
+      <div class="home-card-icon">
+        <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=200&h=200&fit=crop" alt="Important Update" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <div style="display:none; font-size: 64px;">⚠️</div>
+      </div>
+      <h3>Important Update</h3>
+      <p>Create and generate important update emails with sections and attachments</p>
     </div>
     <!-- More home cards will be added here for future features -->
     
@@ -887,6 +897,47 @@ button:hover {
   </div>
 </div>
 <!-- End WOM Comms page section -->
+
+<!-- IMPORTANT UPDATE PAGE -->
+<div id="important-update" class="page-section">
+  <div class="container">
+    <!-- BUILDER -->
+    <div class="card builder-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h3 style="margin: 0; border-bottom: 2px solid #dc3545; padding-bottom: 8px; flex: 1;">⚠️ Important Update Builder</h3>
+        <button class="small secondary" onclick="openHelpModal('important-update-help')" style="margin-left: 16px;">❓ Help</button>
+      </div>
+
+      <label>📅 Date</label>
+      <input type="date" id="importantDate" onchange="updateImportantTitleFromDate();">
+
+      <label>📋 Title</label>
+      <input type="text" id="importantTitle" placeholder="e.g., Important Update - 15 January 2025" value="" oninput="renderImportantEmail();">
+
+      <label>📝 Introduction</label>
+      <textarea id="importantIntroduction" placeholder="Enter introduction text (will appear in bold)" oninput="renderImportantEmail();"></textarea>
+
+      <label>📄 Sections</label>
+      <div id="importantSections" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;"></div>
+      <button class="small primary" onclick="addImportantSection()" style="margin-top: 8px;">➕ Add Section</button>
+
+      <label>📎 Attachments</label>
+      <textarea id="importantAttachments" placeholder="Enter attachments (one per line)" oninput="renderImportantEmail();" style="min-height: 80px;"></textarea>
+
+      <div class="row" style="margin-top: 16px;">
+        <button class="primary" onclick="copyImportantEmail()">📋 Copy Email</button>
+        <button class="secondary" onclick="renderImportantEmail()">👁️ Update Preview</button>
+      </div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="card">
+      <h3>📧 Email Preview</h3>
+      <div id="importantPreview" class="preview"></div>
+    </div>
+  </div>
+</div>
+<!-- End Important Update page section -->
 
 <!-- SETTINGS PAGE -->
 <div id="settings" class="page-section">
@@ -2580,12 +2631,9 @@ function renderWomEmail() {
               <tr>
                 <td>
                   <div style="border-top: 2px solid rgb(0,122,51); margin: 10px 0 25px;"></div>
-                  <div style="background-color: rgb(249,249,249); border: 1px solid rgb(229,229,229); border-left: 4px solid rgb(0,122,51); border-radius: 6px; padding: 16px 15px; margin-top: 10px; text-align: center;">
-                    <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; color: rgb(51,51,51); margin: 0 0 12px 0; line-height: 1.6;">
-                      Do you have feedback, suggestions, or concerns? Share them with the Staff Committee.
-                    </p>
-                    <a href="https://forms.office.com/r/mJdzsTi7Ej" style="display: inline-block; background-color: rgb(0,122,51); color: rgb(255,255,255); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 6px; text-align: center; margin: 0 auto;">Submit Feedback to Staff Committee</a>
-                  </div>
+                  <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; color: rgb(51,51,51); margin: 0; line-height: 1.6; text-align: center;">
+                    Do you have feedback, suggestions, or concerns? Share them with the <a href="https://forms.office.com/r/mJdzsTi7Ej" style="color: rgb(0,122,51); text-decoration: underline; font-weight: 600;">Staff Committee</a>.
+                  </p>
                 </td>
               </tr>
             </table>
@@ -2613,6 +2661,247 @@ async function copyWomEmail() {
   await new Promise(resolve => setTimeout(resolve, 100));
   
   const preview = document.getElementById('womPreview');
+  if (!preview) return;
+  
+  const emailHTML = preview.innerHTML;
+  
+  try {
+    if (navigator.clipboard && navigator.clipboard.write) {
+      const blob = new Blob([emailHTML], { type: 'text/html' });
+      const clipboardItem = new ClipboardItem({ 'text/html': blob });
+      await navigator.clipboard.write([clipboardItem]);
+      alert("✅ Copied for Outlook Web! Paste into your email editor (Ctrl+V or Cmd+V).");
+      return;
+    }
+  } catch (err) {
+    console.log("Clipboard API failed, trying fallback");
+  }
+  
+  const r = document.createRange();
+  r.selectNodeContents(preview);
+  const s = window.getSelection();
+  s.removeAllRanges();
+  s.addRange(r);
+  
+  try {
+  document.execCommand("copy");
+  s.removeAllRanges();
+    alert("✅ Copied for Outlook Web! Paste into your email editor (Ctrl+V or Cmd+V).");
+  } catch (err) {
+    alert("⚠️ Please manually select and copy the preview content.");
+  }
+}
+
+/* ---------- IMPORTANT UPDATE FUNCTIONS ---------- */
+let importantSections = [];
+
+function addImportantSection() {
+  const sectionId = Date.now();
+  importantSections.push({ id: sectionId, title: '', content: '', bullets: [] });
+  renderImportantSections();
+}
+
+function removeImportantSection(id) {
+  importantSections = importantSections.filter(s => s.id !== id);
+  renderImportantSections();
+  renderImportantEmail();
+}
+
+function addImportantBullet(sectionId) {
+  const section = importantSections.find(s => s.id === sectionId);
+  if (section) {
+    const bulletId = Date.now();
+    section.bullets.push({ id: bulletId, text: '' });
+    renderImportantSections();
+  }
+}
+
+function removeImportantBullet(sectionId, bulletId) {
+  const section = importantSections.find(s => s.id === sectionId);
+  if (section) {
+    section.bullets = section.bullets.filter(b => b.id !== bulletId);
+    renderImportantSections();
+    renderImportantEmail();
+  }
+}
+
+function renderImportantSections() {
+  const container = document.getElementById('importantSections');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  importantSections.forEach((section, index) => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.padding = '16px';
+    div.style.marginBottom = '8px';
+    div.style.borderLeft = '4px solid #dc3545';
+    
+    let bulletsHTML = '';
+    if (section.bullets && section.bullets.length > 0) {
+      bulletsHTML = '<div style="margin-top: 12px;"><strong>Bullet Points:</strong>';
+      section.bullets.forEach((bullet, bulletIndex) => {
+        bulletsHTML += `
+          <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center;">
+            <input type="text" class="important-bullet-text" data-section="${section.id}" data-bullet="${bullet.id}" placeholder="Enter bullet point" value="${bullet.text}" oninput="updateImportantBullet(${section.id}, ${bullet.id}, this.value); renderImportantEmail();" style="flex: 1;">
+            <button class="danger small" onclick="removeImportantBullet(${section.id}, ${bullet.id})">🗑️</button>
+          </div>
+        `;
+      });
+      bulletsHTML += '</div>';
+    }
+    
+    div.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <strong>Section ${index + 1}</strong>
+        <button class="danger small" onclick="removeImportantSection(${section.id})">🗑️ Remove</button>
+      </div>
+      <label>Section Title</label>
+      <input type="text" class="important-section-title" data-id="${section.id}" placeholder="Enter section title" value="${section.title}" oninput="updateImportantSection(${section.id}, 'title', this.value); renderImportantEmail();">
+      <label style="margin-top: 12px;">Section Content</label>
+      <textarea class="important-section-content" data-id="${section.id}" placeholder="Enter section content (supports HTML)" oninput="updateImportantSection(${section.id}, 'content', this.value); renderImportantEmail();" style="min-height: 100px;">${section.content}</textarea>
+      ${bulletsHTML}
+      <button class="small secondary" onclick="addImportantBullet(${section.id})" style="margin-top: 12px;">➕ Add Bullet Point</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function updateImportantSection(id, field, value) {
+  const section = importantSections.find(s => s.id === id);
+  if (section) {
+    section[field] = value;
+  }
+}
+
+function updateImportantBullet(sectionId, bulletId, value) {
+  const section = importantSections.find(s => s.id === sectionId);
+  if (section) {
+    const bullet = section.bullets.find(b => b.id === bulletId);
+    if (bullet) {
+      bullet.text = value;
+    }
+  }
+}
+
+function updateImportantTitleFromDate() {
+  const dateInput = document.getElementById('importantDate');
+  const titleInput = document.getElementById('importantTitle');
+  
+  if (dateInput && dateInput.value) {
+    const date = new Date(dateInput.value);
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    const formattedDate = date.toLocaleDateString('en-NZ', options);
+    const areaName = getAreaDisplayName();
+    titleInput.value = `${areaName} Important Update - ${formattedDate}`;
+    renderImportantEmail();
+  }
+}
+
+function renderImportantEmail() {
+  const preview = document.getElementById('importantPreview');
+  if (!preview) return;
+  
+  const areaName = getAreaDisplayName();
+  const title = document.getElementById('importantTitle')?.value || `${areaName} Important Update`;
+  const introduction = document.getElementById('importantIntroduction')?.value || '';
+  
+  // Build sections HTML with bullet points
+  let sectionsHTML = '';
+  importantSections.forEach(section => {
+    if (section.title || section.content || (section.bullets && section.bullets.length > 0)) {
+      let bulletsHTML = '';
+      if (section.bullets && section.bullets.length > 0) {
+        const validBullets = section.bullets.filter(b => b.text.trim().length > 0);
+        if (validBullets.length > 0) {
+          bulletsHTML = '<ul style="margin: 12px 0; padding-left: 25px;">';
+          validBullets.forEach(bullet => {
+            bulletsHTML += `<li style="margin: 8px 0; font-size: 15px; color: rgb(51,51,51); line-height: 1.7;">${bullet.text}</li>`;
+          });
+          bulletsHTML += '</ul>';
+        }
+      }
+      
+      sectionsHTML += `
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 30px;">
+          <tr>
+            <td>
+              ${section.title ? `<h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 20px; font-weight: 700; color: rgb(220,53,69); margin-top: 30px; margin-bottom: 12px; border-left: 5px solid rgb(220,53,69); padding-left: 12px;">${section.title}</h2>` : ''}
+              ${section.content ? `<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; color: rgb(51,51,51); margin: 8px 0 16px; line-height: 1.7; word-wrap: break-word;">${section.content.replace(/\n/g, '<br>')}</div>` : ''}
+              ${bulletsHTML}
+            </td>
+          </tr>
+        </table>
+      `;
+    }
+  });
+  
+  // Build attachments HTML
+  let attachmentsHTML = '';
+  const attachmentsText = document.getElementById('importantAttachments')?.value || '';
+  const attachmentsList = attachmentsText.split('\n').filter(line => line.trim().length > 0);
+  
+  if (attachmentsList.length > 0) {
+    attachmentsHTML = `
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 25px;">
+        <tr>
+          <td>
+            <div style="border-top: 3px solid rgb(220,53,69); margin: 15px 0 30px;"></div>
+            <div style="background-color: rgb(255,245,245); border: 2px solid rgb(220,53,69); border-left: 5px solid rgb(220,53,69); border-radius: 6px; padding: 16px 18px; margin-top: 15px;">
+              <strong style="display: block; font-size: 16px; color: rgb(220,53,69); margin-bottom: 8px;">📎 Attachments</strong>
+              <ul style="margin: 8px 0 0 0; padding-left: 25px;">
+                ${attachmentsList.map(attachment => `<li style="margin: 6px 0; font-size: 15px; color: rgb(51,51,51); word-break: break-word; line-height: 1.6;">${attachment}</li>`).join('')}
+              </ul>
+            </div>
+          </td>
+        </tr>
+      </table>
+    `;
+  }
+  
+  preview.innerHTML = `
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: rgb(244,244,244);">
+  <tr>
+    <td align="center" style="padding: 20px 0;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: rgb(255,255,255); border: 3px solid rgb(220,53,69); border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(220,53,69,0.2);">
+        <!-- Header -->
+        <tr>
+          <td style="background-color: rgb(220,53,69); padding: 28px 20px 24px; border-bottom: 4px solid rgb(180,40,50); text-align: center;">
+            <img src="https://buy.stjohn.org.nz/globalassets/images-logos/hato-hone-st-john-logo-reversed-stacked.png" alt="St John NZ" style="display: block; margin: 0 auto 12px; max-height: 75px; max-width: 75px;">
+            <h1 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 900; margin: 0; line-height: 1.3; color: rgb(255,255,255); letter-spacing: 0.5px;">⚠️ ${title}</h1>
+          </td>
+        </tr>
+        
+        <!-- Content -->
+        <tr>
+          <td style="padding: 35px 35px; line-height: 1.7; word-wrap: break-word;">
+            ${introduction ? `<p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; color: rgb(220,53,69); margin: 8px 0 20px; font-weight: 700;"><strong>${introduction.replace(/\n/g, '<br>')}</strong></p>` : ''}
+            ${sectionsHTML}
+            ${attachmentsHTML}
+          </td>
+        </tr>
+        
+        <!-- Footer -->
+        <tr>
+          <td style="background-color: rgb(250,250,250); padding: 18px 20px; border-top: 2px solid rgb(229,229,229); text-align: center;">
+            <p style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: rgb(85,85,85); margin: 0;">
+              This communication was sent by the ${getManagementTeamName()}.<br>
+              © 2025 St John New Zealand. All rights reserved.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+  `;
+}
+
+async function copyImportantEmail() {
+  renderImportantEmail();
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  const preview = document.getElementById('importantPreview');
   if (!preview) return;
   
   const emailHTML = preview.innerHTML;
