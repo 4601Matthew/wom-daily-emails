@@ -965,11 +965,11 @@ button:hover {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <div>
             <label>📅 Date</label>
-            <input type="date" id="handoverDate" onchange="renderHandoverEmail(); saveHandoverData();">
+            <input type="date" id="handoverDate" onchange="saveHandoverData();">
           </div>
           <div>
             <label>🔄 Shift</label>
-            <select id="handoverShift" onchange="renderHandoverEmail(); saveHandoverData();">
+            <select id="handoverShift" onchange="saveHandoverData();">
               <option value="">Select Shift</option>
               <option value="Day">Day</option>
               <option value="Night">Night</option>
@@ -977,7 +977,7 @@ button:hover {
           </div>
           <div>
             <label>🎯 Watch</label>
-            <select id="handoverWatch" onchange="renderHandoverEmail(); saveHandoverData();">
+            <select id="handoverWatch" onchange="saveHandoverData();">
               <option value="">Select Watch</option>
               <option value="Blue">Blue</option>
               <option value="Red">Red</option>
@@ -987,11 +987,11 @@ button:hover {
           </div>
           <div>
             <label>👤 Watch Manager</label>
-            <input type="text" id="handoverWatchManager" placeholder="Watch Manager name" oninput="renderHandoverEmail(); saveHandoverData();">
+            <input type="text" id="handoverWatchManager" placeholder="Watch Manager name" oninput="saveHandoverData();">
           </div>
           <div>
             <label>👥 DDM (Delegate)</label>
-            <input type="text" id="handoverDDM" placeholder="DDM name" oninput="renderHandoverEmail(); saveHandoverData();">
+            <input type="text" id="handoverDDM" placeholder="DDM name" oninput="saveHandoverData();">
           </div>
         </div>
       </div>
@@ -1002,33 +1002,33 @@ button:hover {
           <label style="font-weight: 600;">SICKNESS</label>
           <div style="margin-top: 8px;">
             <label style="font-size: 12px;">Total Sick Calls</label>
-            <input type="number" id="handoverSickTotal" value="0" oninput="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+            <input type="number" id="handoverSickTotal" value="0" oninput="saveHandoverData();" style="width: 100%;">
           </div>
           <div style="margin-top: 8px;">
             <label style="font-size: 12px;">Total Sick Calls - Staff on shift</label>
-            <input type="number" id="handoverSickStaff" value="0" oninput="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+            <input type="number" id="handoverSickStaff" value="0" oninput="saveHandoverData();" style="width: 100%;">
           </div>
         </div>
         <div style="background: #f8f9fa; padding: 12px; border-radius: 6px;">
           <label style="font-weight: 600;">OTHER</label>
           <div style="margin-top: 8px;">
             <label style="font-size: 12px;">Total # Personnel Called</label>
-            <input type="number" id="handoverPersonnelCalled" oninput="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+            <input type="number" id="handoverPersonnelCalled" oninput="saveHandoverData();" style="width: 100%;">
           </div>
           <div style="margin-top: 8px;">
             <label style="font-size: 12px;">Volunteers utilised</label>
-            <input type="number" id="handoverVolunteers" oninput="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+            <input type="number" id="handoverVolunteers" oninput="saveHandoverData();" style="width: 100%;">
           </div>
           <div style="margin-top: 8px;">
             <label style="font-size: 12px;">Total Spare Ambulances</label>
-            <input type="number" id="handoverSpareAmbulances" oninput="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+            <input type="number" id="handoverSpareAmbulances" oninput="saveHandoverData();" style="width: 100%;">
           </div>
         </div>
         <div style="background: #f8f9fa; padding: 12px; border-radius: 6px;">
           <label style="font-weight: 600;">STATUS BOARD</label>
           <div style="margin-top: 8px;">
             <label style="font-size: 12px;">EAS Demand</label>
-            <select id="handoverEASDemand" onchange="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+            <select id="handoverEASDemand" onchange="saveHandoverData();" style="width: 100%;">
               <option value="">Select</option>
               <option value="BAU L1">BAU L1</option>
               <option value="BAU L2">BAU L2</option>
@@ -1037,7 +1037,7 @@ button:hover {
           </div>
           <div style="margin-top: 8px;">
             <label style="font-size: 12px;">LOCAL ED</label>
-            <select id="handoverLocalED" onchange="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+            <select id="handoverLocalED" onchange="saveHandoverData();" style="width: 100%;">
               <option value="">Select</option>
               <option value="GREEN">GREEN</option>
               <option value="AMBER">AMBER</option>
@@ -1046,7 +1046,7 @@ button:hover {
           </div>
           <div style="margin-top: 8px;">
             <label style="font-size: 12px;">OTHER HOSP</label>
-            <select id="handoverOtherHosp" onchange="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+            <select id="handoverOtherHosp" onchange="saveHandoverData();" style="width: 100%;">
               <option value="">Select</option>
               <option value="GREEN">GREEN</option>
               <option value="AMBER">AMBER</option>
@@ -1063,12 +1063,12 @@ button:hover {
           <label style="font-weight: 600;">Patient Flow</label>
           <div style="margin-top: 8px;">
             <label style="font-size: 12px;">Notifications from local ED</label>
-            <input type="text" id="handoverEDNotifications" placeholder="e.g., 0 Notifications were received from local ED" oninput="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+            <input type="text" id="handoverEDNotifications" placeholder="e.g., 0 Notifications were received from local ED" oninput="saveHandoverData();" style="width: 100%;">
           </div>
           <div style="margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div>
               <label style="font-size: 12px;">AWA was set up</label>
-              <select id="handoverAWA" onchange="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+              <select id="handoverAWA" onchange="saveHandoverData();" style="width: 100%;">
                 <option value="">Select</option>
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
@@ -1076,7 +1076,7 @@ button:hover {
             </div>
             <div>
               <label style="font-size: 12px;">Rapid offload invoked</label>
-              <select id="handoverRapidOffload" onchange="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+              <select id="handoverRapidOffload" onchange="saveHandoverData();" style="width: 100%;">
                 <option value="">Select</option>
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
@@ -1095,15 +1095,15 @@ button:hover {
         <label style="font-weight: 600; font-size: 16px;">ROSTERS - NEXT 24 HOURS STATUS</label>
         <div style="margin-top: 12px;">
           <label style="font-size: 12px;">Tonight</label>
-          <textarea id="handoverRosterTonight" placeholder="e.g., HAWE1 is s/c from 0100" oninput="renderHandoverEmail(); saveHandoverData();" style="min-height: 60px; width: 100%;"></textarea>
+          <textarea id="handoverRosterTonight" placeholder="e.g., HAWE1 is s/c from 0100" oninput="saveHandoverData();" style="min-height: 60px; width: 100%;"></textarea>
         </div>
         <div style="margin-top: 12px;">
           <label style="font-size: 12px;">Tomorrow</label>
-          <textarea id="handoverRosterTomorrow" placeholder="e.g., Fully Crewed" oninput="renderHandoverEmail(); saveHandoverData();" style="min-height: 60px; width: 100%;"></textarea>
+          <textarea id="handoverRosterTomorrow" placeholder="e.g., Fully Crewed" oninput="saveHandoverData();" style="min-height: 60px; width: 100%;"></textarea>
         </div>
         <div style="margin-top: 12px;">
           <label style="font-size: 12px;">Oncoming Shift Fully Crewed</label>
-          <select id="handoverOncomingCrewed" onchange="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+          <select id="handoverOncomingCrewed" onchange="saveHandoverData();" style="width: 100%;">
             <option value="">Select</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
@@ -1115,30 +1115,30 @@ button:hover {
       <div style="background: #f8f9fa; padding: 16px; border-radius: 6px; margin-bottom: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <label style="font-weight: 600; font-size: 16px;">REPORTABLE EVENTS</label>
-          <label style="font-size: 12px;"><input type="checkbox" id="handoverReportableNothing" onchange="renderHandoverEmail(); saveHandoverData();"> Nothing to Report</label>
+          <label style="font-size: 12px;"><input type="checkbox" id="handoverReportableNothing" onchange="saveHandoverData();"> Nothing to Report</label>
         </div>
         <p style="font-size: 12px; color: #666; margin: 8px 0;">Provide a high level brief on any Reportable events, please list RE number</p>
-        <textarea id="handoverReportableEvents" placeholder="e.g., RE36886: Ongoing&#10;RE36525: Ongoing" oninput="renderHandoverEmail(); saveHandoverData();" style="min-height: 100px; width: 100%;"></textarea>
+        <textarea id="handoverReportableEvents" placeholder="e.g., RE36886: Ongoing&#10;RE36525: Ongoing" oninput="saveHandoverData();" style="min-height: 100px; width: 100%;"></textarea>
       </div>
 
       <!-- Patient Transfer Tasks -->
       <div style="background: #f8f9fa; padding: 16px; border-radius: 6px; margin-bottom: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <label style="font-weight: 600; font-size: 16px;">PATIENT TRANSFER TASKS</label>
-          <label style="font-size: 12px;"><input type="checkbox" id="handoverTransferNothing" onchange="renderHandoverEmail(); saveHandoverData();"> Nothing to Report</label>
+          <label style="font-size: 12px;"><input type="checkbox" id="handoverTransferNothing" onchange="saveHandoverData();"> Nothing to Report</label>
         </div>
         <p style="font-size: 12px; color: #666; margin: 8px 0;">Provide commentary on any complex or long distance transfers (out of the ordinary), customer issues or complaints.</p>
-        <textarea id="handoverTransferTasks" oninput="renderHandoverEmail(); saveHandoverData();" style="min-height: 100px; width: 100%;"></textarea>
+        <textarea id="handoverTransferTasks" oninput="saveHandoverData();" style="min-height: 100px; width: 100%;"></textarea>
         <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <div>
             <label style="font-size: 12px;">Next Shift Follow up / Actions</label>
-            <select id="handoverTransferFollowUp1" onchange="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+            <select id="handoverTransferFollowUp1" onchange="saveHandoverData();" style="width: 100%;">
               <option value="">Please Select</option>
             </select>
           </div>
           <div>
             <label style="font-size: 12px;">&nbsp;</label>
-            <select id="handoverTransferFollowUp2" onchange="renderHandoverEmail(); saveHandoverData();" style="width: 100%;">
+            <select id="handoverTransferFollowUp2" onchange="saveHandoverData();" style="width: 100%;">
               <option value="">Please Select</option>
             </select>
           </div>
@@ -1151,11 +1151,11 @@ button:hover {
         <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <div>
             <label style="font-weight: 600; color: #28a745;">AVAILABLE</label>
-            <textarea id="handoverFleetAvailable" placeholder="Enter available vehicle numbers (one per line)" oninput="renderHandoverEmail(); saveHandoverData();" style="min-height: 100px; width: 100%;"></textarea>
+            <textarea id="handoverFleetAvailable" placeholder="Enter available vehicle numbers (one per line)" oninput="saveHandoverData();" style="min-height: 100px; width: 100%;"></textarea>
           </div>
           <div>
             <label style="font-weight: 600; color: #dc3545;">NOT AVAILABLE</label>
-            <textarea id="handoverFleetNotAvailable" placeholder="Enter unavailable vehicle numbers (one per line)" oninput="renderHandoverEmail(); saveHandoverData();" style="min-height: 100px; width: 100%;"></textarea>
+            <textarea id="handoverFleetNotAvailable" placeholder="Enter unavailable vehicle numbers (one per line)" oninput="saveHandoverData();" style="min-height: 100px; width: 100%;"></textarea>
           </div>
         </div>
       </div>
@@ -1163,7 +1163,7 @@ button:hover {
       <!-- Station Infrastructure -->
       <div style="background: #f8f9fa; padding: 16px; border-radius: 6px; margin-bottom: 16px;">
         <label style="font-weight: 600; font-size: 16px;">STATION INFRASTRUCTURE / PROCESS / SUPPLY / MISCELLANEOUS / FLEET CONTINUED</label>
-        <textarea id="handoverInfrastructure" placeholder="Enter any notes on station infrastructure, processes, supplies, miscellaneous items, or fleet continued" oninput="renderHandoverEmail(); saveHandoverData();" style="min-height: 100px; width: 100%;"></textarea>
+        <textarea id="handoverInfrastructure" placeholder="Enter any notes on station infrastructure, processes, supplies, miscellaneous items, or fleet continued" oninput="saveHandoverData();" style="min-height: 100px; width: 100%;"></textarea>
       </div>
 
       <!-- Leave and Equipment -->
@@ -1171,16 +1171,16 @@ button:hover {
         <div style="background: #f8f9fa; padding: 16px; border-radius: 6px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <label style="font-weight: 600; font-size: 16px;">LEAVE - Sickness / ACC</label>
-            <label style="font-size: 12px;"><input type="checkbox" id="handoverLeaveNothing" onchange="renderHandoverEmail(); saveHandoverData();"> Nothing to Report</label>
+            <label style="font-size: 12px;"><input type="checkbox" id="handoverLeaveNothing" onchange="saveHandoverData();"> Nothing to Report</label>
           </div>
-          <textarea id="handoverLeave" oninput="renderHandoverEmail(); saveHandoverData();" style="min-height: 80px; width: 100%; margin-top: 8px;"></textarea>
+          <textarea id="handoverLeave" oninput="saveHandoverData();" style="min-height: 80px; width: 100%; margin-top: 8px;"></textarea>
         </div>
         <div style="background: #f8f9fa; padding: 16px; border-radius: 6px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <label style="font-weight: 600; font-size: 16px;">Equipment FAULTS</label>
-            <label style="font-size: 12px;"><input type="checkbox" id="handoverEquipmentNothing" onchange="renderHandoverEmail(); saveHandoverData();"> Nothing to Report</label>
+            <label style="font-size: 12px;"><input type="checkbox" id="handoverEquipmentNothing" onchange="saveHandoverData();"> Nothing to Report</label>
           </div>
-          <textarea id="handoverEquipment" oninput="renderHandoverEmail(); saveHandoverData();" style="min-height: 80px; width: 100%; margin-top: 8px;"></textarea>
+          <textarea id="handoverEquipment" oninput="saveHandoverData();" style="min-height: 80px; width: 100%; margin-top: 8px;"></textarea>
         </div>
       </div>
 
