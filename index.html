@@ -457,7 +457,7 @@ button:hover {
 
 .crewing-row {
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: 120px 1fr 1fr;
   gap: 12px;
   align-items: center;
   margin-top: 8px;
@@ -1112,6 +1112,7 @@ const defaultData = {
     "central": []
   },
   crewingStatus: {},
+  atpStatus: {},
   temporaryClosures: []
 };
 
@@ -1120,6 +1121,7 @@ let dayTasksByArea = {...defaultData.dayTasksByArea};
 let dutyManagersByArea = {...defaultData.dutyManagersByArea};
 let plannedClosuresByArea = {...defaultData.plannedClosuresByArea};
 let crewingStatus = {...defaultData.crewingStatus};
+let atpStatus = {...defaultData.atpStatus};
 
 // Helper function to get day tasks for current area
 function getCurrentDayTasks() {
@@ -1252,6 +1254,7 @@ async function loadDataFromAPI() {
         }
         
         crewingStatus = data.crewingStatus || defaultData.crewingStatus;
+        atpStatus = data.atpStatus || defaultData.atpStatus;
         
         // Save temporary closures if available
         if (data.temporaryClosures) {
@@ -1284,6 +1287,7 @@ async function saveDataToAPI() {
       dutyManagersByArea,
       plannedClosuresByArea,
       crewingStatus,
+      atpStatus,
       temporaryClosures: getTemporaryClosuresData()
     };
     
@@ -1395,6 +1399,7 @@ function loadDataFromLocalStorage() {
   }
   
   crewingStatus = JSON.parse(localStorage.getItem("crewingStatus")) || defaultData.crewingStatus;
+  atpStatus = JSON.parse(localStorage.getItem("atpStatus")) || defaultData.atpStatus;
 }
 
 function saveDataToLocalStorage() {
@@ -1403,6 +1408,7 @@ function saveDataToLocalStorage() {
   localStorage.setItem("dutyManagersByArea", JSON.stringify(dutyManagersByArea));
   localStorage.setItem("plannedClosuresByArea", JSON.stringify(plannedClosuresByArea));
   localStorage.setItem("crewingStatus", JSON.stringify(crewingStatus));
+  localStorage.setItem("atpStatus", JSON.stringify(atpStatus));
 }
 
 function getTemporaryClosuresData() {
@@ -1723,6 +1729,7 @@ function renderCrewingChecks(){
   const callsigns = getCurrentCallsigns();
   callsigns.forEach(c=>{
     const status = crewingStatus[c] || "fully";
+    const atp = atpStatus[c] || "N/A";
     crewingChecks.innerHTML += `
       <div class="crewing-row">
         <label>${c}</label>
@@ -1730,6 +1737,15 @@ function renderCrewingChecks(){
           <option value="fully" ${status==="fully"?"selected":""}>Fully Crewed</option>
           <option value="single" ${status==="single"?"selected":""}>Single Crewed</option>
           <option value="uncrewed" ${status==="uncrewed"?"selected":""}>Uncrewed</option>
+          <option value="N/A" ${status==="N/A"?"selected":""}>N/A</option>
+        </select>
+        <select data-call="${c}" data-type="atp" onchange="atpStatus['${c}']=this.value;saveDataToAPI();render()">
+          <option value="N/A" ${atp==="N/A"?"selected":""}>N/A</option>
+          <option value="CCP" ${atp==="CCP"?"selected":""}>CCP</option>
+          <option value="ECP" ${atp==="ECP"?"selected":""}>ECP</option>
+          <option value="PARA" ${atp==="PARA"?"selected":""}>PARA</option>
+          <option value="EMT" ${atp==="EMT"?"selected":""}>EMT</option>
+          <option value="FR" ${atp==="FR"?"selected":""}>FR</option>
         </select>
       </div>`;
   });
@@ -2206,10 +2222,10 @@ function render(){
   };
 
   // Format crewing HTML with inline styles for Outlook
-  // Only show vehicles that are NOT fully crewed
+  // Only show vehicles that are NOT fully crewed and NOT N/A
   const notFullyCrewed = callsigns.filter(c => {
     const status = crewingStatus[c] || "fully";
-    return status !== "fully";
+    return status !== "fully" && status !== "N/A";
   });
   
   let crewingHTMLFormatted = "";
@@ -2219,9 +2235,11 @@ function render(){
     crewingHTMLFormatted = `<ul style="margin: 0; padding-left: 20px;">`;
     notFullyCrewed.forEach(c => {
       const status = crewingStatus[c] || "fully";
+      const atp = atpStatus[c] || "N/A";
       let statusText = status === "single" ? "Single Crewed" : "Uncrewed";
       let statusColor = status === "single" ? "rgb(255,140,0)" : "rgb(220,53,69)"; // Orange for single, red for uncrewed
-      crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${c} - <span style="color: ${statusColor};"><strong>${statusText}</strong></span></li>`;
+      let atpText = atp !== "N/A" ? ` (ATP: ${atp})` : "";
+      crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${c} - <span style="color: ${statusColor};"><strong>${statusText}</strong></span>${atpText}</li>`;
     });
     crewingHTMLFormatted += `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">All other vehicles are fully crewed.</li>`;
     crewingHTMLFormatted += `</ul>`;
