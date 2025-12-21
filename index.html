@@ -775,6 +775,15 @@ button:hover {
       <p>Manage and schedule planned road closures</p>
     </div>
     
+    <div class="home-card" onclick="navigateToPage('planned-major-events')">
+      <div class="home-card-icon">
+        <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?w=200&h=200&fit=crop" alt="Major Events" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <div style="display:none; font-size: 64px;">🎯</div>
+      </div>
+      <h3>Planned Major Events</h3>
+      <p>Manage and schedule planned major events</p>
+    </div>
+    
     <div class="home-card home-card-new-row" onclick="navigateToPage('settings')">
       <div class="home-card-icon">
         <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=200&fit=crop" alt="Settings" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
@@ -842,6 +851,9 @@ button:hover {
 
   <label>🎯 Major Events</label>
   <textarea id="majorEvents" placeholder="Enter major events (one per line)"></textarea>
+  <div style="display: flex; gap: 8px; margin-top: 8px;">
+    <button class="small primary" onclick="navigateToPage('planned-major-events')">📅 Plan Major Events</button>
+  </div>
 
   <label>📌 Other</label>
   <textarea id="other" placeholder="Enter other notes or leave empty for default message"></textarea>
@@ -1031,6 +1043,48 @@ button:hover {
 </div>
 <!-- End Planned Road Closures page section -->
 
+<!-- PLANNED MAJOR EVENTS PAGE -->
+<div id="planned-major-events" class="page-section">
+  <div style="max-width: 1400px; margin: auto; padding: 20px;">
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; border-bottom: 2px solid #007A33; padding-bottom: 8px; flex: 1;">🎯 Planned Major Events <span id="plannedMajorEventsAreaLabel" style="font-size: 14px; color: #007A33; font-weight: normal;">(Current Area: Mt Taranaki)</span></h3>
+        <button class="secondary small" onclick="navigateToPage('home')">🏠 Back to Home</button>
+      </div>
+      
+      <div class="tab-buttons" style="margin-top: 16px;">
+        <button class="primary small" onclick="showMajorEventTab('addMajorEventTab')">➕ Add Major Event</button>
+        <button class="primary small" onclick="showMajorEventTab('activeMajorEventsTab')">🟢 Active</button>
+        <button class="primary small" onclick="showMajorEventTab('futureMajorEventsTab')">🔵 Future</button>
+        <button class="primary small" onclick="showMajorEventTab('pastMajorEventsTab')">⚫ Past</button>
+        <button class="primary" onclick="savePlannedMajorEventsWithFeedback(this)" style="margin-left: auto;">💾 Save</button>
+      </div>
+
+      <!-- Add Major Event Tab -->
+      <div id="addMajorEventTab" class="settings-section">
+        <div id="newMajorEventForm" style="margin-top: 16px;"></div>
+        <button class="small primary" onclick="addPlannedMajorEvent()" style="margin-top: 12px;">➕ Add Planned Major Event</button>
+      </div>
+
+      <!-- Active Major Events Tab -->
+      <div id="activeMajorEventsTab" class="hidden settings-section">
+        <div id="activeMajorEventsList" style="margin-top: 16px;"></div>
+      </div>
+
+      <!-- Future Major Events Tab -->
+      <div id="futureMajorEventsTab" class="hidden settings-section">
+        <div id="futureMajorEventsList" style="margin-top: 16px;"></div>
+      </div>
+
+      <!-- Past Major Events Tab -->
+      <div id="pastMajorEventsTab" class="hidden settings-section">
+        <div id="pastMajorEventsList" style="margin-top: 16px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Planned Major Events page section -->
+
 <!-- HELP MODALS -->
 <div class="modal" id="email-builder-help">
   <div class="modal-content" style="max-width: 800px;">
@@ -1166,6 +1220,15 @@ const defaultData = {
     "ruapehu": [],
     "central": []
   },
+  plannedMajorEventsByArea: {
+    "mt-taranaki": [],
+    "mid-central": [],
+    "horowhenua": [],
+    "hawkes-bay": [],
+    "whanganui": [],
+    "ruapehu": [],
+    "central": []
+  },
   crewingStatus: {},
   atpStatus: {},
   temporaryClosures: []
@@ -1175,9 +1238,11 @@ let callsignsByArea = {...defaultData.callsignsByArea};
 let dayTasksByArea = {...defaultData.dayTasksByArea};
 let dutyManagersByArea = {...defaultData.dutyManagersByArea};
 let plannedClosuresByArea = {...defaultData.plannedClosuresByArea};
+let plannedMajorEventsByArea = {...defaultData.plannedMajorEventsByArea};
 let crewingStatus = {...defaultData.crewingStatus};
 let atpStatus = {...defaultData.atpStatus};
 let temporaryCallsigns = []; // Session-only temporary callsigns
+let unsavedClosures = []; // Closures being edited that haven't been saved yet
 
 // Helper function to get day tasks for current area
 function getCurrentDayTasks() {
@@ -1204,6 +1269,15 @@ function getCurrentPlannedClosures() {
     plannedClosuresByArea[area] = [];
   }
   return plannedClosuresByArea[area];
+}
+
+// Helper function to get planned major events for current area
+function getCurrentPlannedMajorEvents() {
+  const area = getCurrentArea();
+  if (!plannedMajorEventsByArea[area]) {
+    plannedMajorEventsByArea[area] = [];
+  }
+  return plannedMajorEventsByArea[area];
 }
 
 // Helper function to get current area
@@ -1294,6 +1368,9 @@ async function loadDataFromAPI() {
           plannedClosuresByArea = data.plannedClosuresByArea || defaultData.plannedClosuresByArea;
         }
         
+        // Load planned major events
+        plannedMajorEventsByArea = data.plannedMajorEventsByArea || defaultData.plannedMajorEventsByArea;
+        
         // Migrate old dayTasks format to new area-based format
         if (data.dayTasks && !data.dayTasksByArea) {
           dayTasksByArea = {
@@ -1357,6 +1434,7 @@ async function saveDataToAPI() {
       dayTasksByArea,
       dutyManagersByArea,
       plannedClosuresByArea,
+      plannedMajorEventsByArea,
       crewingStatus,
       atpStatus,
       temporaryClosures: getTemporaryClosuresData()
@@ -1485,6 +1563,10 @@ function loadDataFromLocalStorage() {
     plannedClosuresByArea = savedPlannedClosuresByArea || defaultData.plannedClosuresByArea;
   }
   
+  // Load planned major events
+  const savedPlannedMajorEventsByArea = JSON.parse(localStorage.getItem("plannedMajorEventsByArea"));
+  plannedMajorEventsByArea = savedPlannedMajorEventsByArea || defaultData.plannedMajorEventsByArea;
+  
   crewingStatus = JSON.parse(localStorage.getItem("crewingStatus")) || defaultData.crewingStatus;
   atpStatus = JSON.parse(localStorage.getItem("atpStatus")) || defaultData.atpStatus;
 }
@@ -1494,6 +1576,7 @@ function saveDataToLocalStorage() {
   localStorage.setItem("dayTasksByArea", JSON.stringify(dayTasksByArea));
   localStorage.setItem("dutyManagersByArea", JSON.stringify(dutyManagersByArea));
   localStorage.setItem("plannedClosuresByArea", JSON.stringify(plannedClosuresByArea));
+  localStorage.setItem("plannedMajorEventsByArea", JSON.stringify(plannedMajorEventsByArea));
   localStorage.setItem("crewingStatus", JSON.stringify(crewingStatus));
   localStorage.setItem("atpStatus", JSON.stringify(atpStatus));
 }
@@ -1972,43 +2055,69 @@ function renderNewClosureForm(){
   const plannedClosures = getCurrentPlannedClosures();
   newClosureForm.innerHTML = "";
   
-  // Sort by start date (ascending)
-  const sorted = [...plannedClosures].sort((a, b) => {
-    const dateA = a.startDate ? new Date(a.startDate) : new Date(0);
-    const dateB = b.startDate ? new Date(b.startDate) : new Date(0);
-    return dateA - dateB;
-  });
+  // Separate saved and unsaved closures
+  const savedClosures = plannedClosures.filter(c => c.saved !== false);
+  const unsavedClosures = plannedClosures.filter(c => c.saved === false);
   
-  sorted.forEach((closure)=>{
-    const i = plannedClosures.indexOf(closure);
-    const startDate = closure.startDate || "";
-    const endDate = closure.endDate || "";
-    newClosureForm.innerHTML += `
-      <div class="closure-item">
-        <div class="planned-closure-fields">
-          <input type="date" placeholder="Start Date" value="${startDate}" onchange="getCurrentPlannedClosures()[${i}].startDate=this.value;saveDataToAPI();renderNewClosureForm()">
-          <input type="date" placeholder="End Date" value="${endDate}" onchange="getCurrentPlannedClosures()[${i}].endDate=this.value;saveDataToAPI();renderNewClosureForm()">
-        </div>
-        <div class="planned-closure-fields">
-          <select onchange="getCurrentPlannedClosures()[${i}].shiftType=this.value;saveDataToAPI();renderNewClosureForm()">
-            <option value="Day" ${closure.shiftType==="Day"?"selected":""}>Day Shift</option>
-            <option value="Night" ${closure.shiftType==="Night"?"selected":""}>Night Shift</option>
-            <option value="All" ${closure.shiftType==="All"?"selected":""}>All Shifts</option>
-          </select>
-          <input placeholder="Road name" value="${closure.roadName || ""}" onchange="getCurrentPlannedClosures()[${i}].roadName=this.value">
-        </div>
-        <div class="planned-closure-fields">
-          <input placeholder="Type" value="${closure.type || ""}" onchange="getCurrentPlannedClosures()[${i}].type=this.value">
-          <input placeholder="Closure info" value="${closure.closureInfo || ""}" onchange="getCurrentPlannedClosures()[${i}].closureInfo=this.value">
-        </div>
-        <div class="planned-closure-fields full-width">
-          <input placeholder="Detour" value="${closure.detour || ""}" onchange="getCurrentPlannedClosures()[${i}].detour=this.value">
-        </div>
-        <div style="margin-top: 8px;">
-          <button class="danger small" onclick="getCurrentPlannedClosures().splice(${i},1);saveDataToAPI();renderNewClosureForm()">➖ Remove</button>
-        </div>
-      </div>`;
-  });
+  // Display unsaved closures first (editing section)
+  if (unsavedClosures.length > 0) {
+    newClosureForm.innerHTML += `<h4 style="margin-top: 20px; margin-bottom: 12px; color: #007A33; font-size: 16px;">📝 Editing (Unsaved)</h4>`;
+    unsavedClosures.forEach((closure)=>{
+      const i = plannedClosures.indexOf(closure);
+      newClosureForm.innerHTML += renderClosureFormItem(closure, i, false);
+    });
+  }
+  
+  // Display saved closures (sorted)
+  if (savedClosures.length > 0) {
+    newClosureForm.innerHTML += `<h4 style="margin-top: ${unsavedClosures.length > 0 ? '30px' : '0px'}; margin-bottom: 12px; color: #007A33; font-size: 16px;">✅ Saved Road Closures</h4>`;
+    
+    // Sort by start date (ascending)
+    const sorted = [...savedClosures].sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate) : new Date(0);
+      const dateB = b.startDate ? new Date(b.startDate) : new Date(0);
+      return dateA - dateB;
+    });
+    
+    sorted.forEach((closure)=>{
+      const i = plannedClosures.indexOf(closure);
+      newClosureForm.innerHTML += renderClosureFormItem(closure, i, true);
+    });
+  }
+}
+
+function renderClosureFormItem(closure, i, isSaved){
+  const startDate = closure.startDate || "";
+  const endDate = closure.endDate || "";
+  const borderStyle = isSaved ? "1px solid #ddd" : "2px solid #ffc107";
+  const bgStyle = isSaved ? "#ffffff" : "#fffef5";
+  
+  return `
+    <div class="closure-item" style="border: ${borderStyle}; background-color: ${bgStyle}; margin-bottom: 16px; padding: 16px; border-radius: 6px;">
+      <div class="planned-closure-fields">
+        <input type="date" placeholder="Start Date" value="${startDate}" onchange="getCurrentPlannedClosures()[${i}].startDate=this.value;${isSaved ? 'saveDataToAPI();' : ''}renderNewClosureForm()">
+        <input type="date" placeholder="End Date" value="${endDate}" onchange="getCurrentPlannedClosures()[${i}].endDate=this.value;${isSaved ? 'saveDataToAPI();' : ''}renderNewClosureForm()">
+      </div>
+      <div class="planned-closure-fields">
+        <select onchange="getCurrentPlannedClosures()[${i}].shiftType=this.value;${isSaved ? 'saveDataToAPI();' : ''}renderNewClosureForm()">
+          <option value="Day" ${closure.shiftType==="Day"?"selected":""}>Day Shift</option>
+          <option value="Night" ${closure.shiftType==="Night"?"selected":""}>Night Shift</option>
+          <option value="All" ${closure.shiftType==="All"?"selected":""}>All Shifts</option>
+        </select>
+        <input placeholder="Road name" value="${closure.roadName || ""}" onchange="getCurrentPlannedClosures()[${i}].roadName=this.value;${isSaved ? 'saveDataToAPI();' : ''}">
+      </div>
+      <div class="planned-closure-fields">
+        <input placeholder="Type" value="${closure.type || ""}" onchange="getCurrentPlannedClosures()[${i}].type=this.value;${isSaved ? 'saveDataToAPI();' : ''}">
+        <input placeholder="Closure info" value="${closure.closureInfo || ""}" onchange="getCurrentPlannedClosures()[${i}].closureInfo=this.value;${isSaved ? 'saveDataToAPI();' : ''}">
+      </div>
+      <div class="planned-closure-fields full-width">
+        <input placeholder="Detour" value="${closure.detour || ""}" onchange="getCurrentPlannedClosures()[${i}].detour=this.value;${isSaved ? 'saveDataToAPI();' : ''}">
+      </div>
+      <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+        <button class="danger small" onclick="getCurrentPlannedClosures().splice(${i},1);saveDataToAPI();renderNewClosureForm();renderActiveClosures();renderFutureClosures();renderPastClosures();">➖ Remove</button>
+        ${!isSaved ? `<button class="primary small" onclick="getCurrentPlannedClosures()[${i}].saved=true;saveDataToAPI();renderNewClosureForm();renderActiveClosures();renderFutureClosures();renderPastClosures();">💾 Mark as Saved</button>` : ''}
+      </div>
+    </div>`;
 }
 
 function renderActiveClosures(){
@@ -2140,13 +2249,16 @@ function addPlannedClosure(){
     roadName: "",
     type: "",
     closureInfo: "",
-    detour: ""
+    detour: "",
+    saved: false // Mark as unsaved until explicitly saved
   });
-  saveDataToAPI();
-  renderNewClosureForm();
+  renderNewClosureForm(); // Don't save to API yet - only render
 }
 
 async function savePlannedClosures(){
+  // Mark all closures as saved
+  const plannedClosures = getCurrentPlannedClosures();
+  plannedClosures.forEach(c => c.saved = true);
   await saveDataToAPI();
   renderNewClosureForm();
   renderActiveClosures();
@@ -2226,6 +2338,263 @@ function addClosureFromPlanned(closure){
     detour: closure.detour || ""
   });
   saveTemporaryClosures();
+}
+
+/* ---------- PLANNED MAJOR EVENTS ---------- */
+function showMajorEventTab(tabId){
+  document.getElementById('addMajorEventTab')?.classList.add('hidden');
+  document.getElementById('activeMajorEventsTab')?.classList.add('hidden');
+  document.getElementById('futureMajorEventsTab')?.classList.add('hidden');
+  document.getElementById('pastMajorEventsTab')?.classList.add('hidden');
+  document.getElementById(tabId)?.classList.remove('hidden');
+}
+
+function renderPlannedMajorEventsPage() {
+  const areaLabel = document.getElementById('plannedMajorEventsAreaLabel');
+  if (areaLabel) {
+    const areaName = getAreaDisplayName();
+    areaLabel.textContent = `(Current Area: ${areaName})`;
+  }
+  showMajorEventTab('addMajorEventTab');
+  renderNewMajorEventForm();
+}
+
+function renderNewMajorEventForm(){
+  const plannedEvents = getCurrentPlannedMajorEvents();
+  const form = document.getElementById('newMajorEventForm');
+  if (!form) return;
+  form.innerHTML = "";
+  
+  // Separate saved and unsaved events
+  const savedEvents = plannedEvents.filter(e => e.saved !== false);
+  const unsavedEvents = plannedEvents.filter(e => e.saved === false);
+  
+  // Display unsaved events first
+  if (unsavedEvents.length > 0) {
+    form.innerHTML += `<h4 style="margin-top: 20px; margin-bottom: 12px; color: #007A33; font-size: 16px;">📝 Editing (Unsaved)</h4>`;
+    unsavedEvents.forEach((event)=>{
+      const i = plannedEvents.indexOf(event);
+      form.innerHTML += renderMajorEventFormItem(event, i, false);
+    });
+  }
+  
+  // Display saved events (sorted)
+  if (savedEvents.length > 0) {
+    form.innerHTML += `<h4 style="margin-top: ${unsavedEvents.length > 0 ? '30px' : '0px'}; margin-bottom: 12px; color: #007A33; font-size: 16px;">✅ Saved Major Events</h4>`;
+    
+    const sorted = [...savedEvents].sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate) : new Date(0);
+      const dateB = b.startDate ? new Date(b.startDate) : new Date(0);
+      return dateA - dateB;
+    });
+    
+    sorted.forEach((event)=>{
+      const i = plannedEvents.indexOf(event);
+      form.innerHTML += renderMajorEventFormItem(event, i, true);
+    });
+  }
+}
+
+function renderMajorEventFormItem(event, i, isSaved){
+  const startDate = event.startDate || "";
+  const endDate = event.endDate || "";
+  const borderStyle = isSaved ? "1px solid #ddd" : "2px solid #ffc107";
+  const bgStyle = isSaved ? "#ffffff" : "#fffef5";
+  
+  return `
+    <div class="closure-item" style="border: ${borderStyle}; background-color: ${bgStyle}; margin-bottom: 16px; padding: 16px; border-radius: 6px;">
+      <div class="planned-closure-fields">
+        <input type="date" placeholder="Start Date" value="${startDate}" onchange="getCurrentPlannedMajorEvents()[${i}].startDate=this.value;${isSaved ? 'saveDataToAPI();' : ''}renderNewMajorEventForm()">
+        <input type="date" placeholder="Finish Date" value="${endDate}" onchange="getCurrentPlannedMajorEvents()[${i}].endDate=this.value;${isSaved ? 'saveDataToAPI();' : ''}renderNewMajorEventForm()">
+      </div>
+      <div class="planned-closure-fields">
+        <select onchange="getCurrentPlannedMajorEvents()[${i}].shiftType=this.value;${isSaved ? 'saveDataToAPI();' : ''}renderNewMajorEventForm()">
+          <option value="Day" ${event.shiftType==="Day"?"selected":""}>Day Shift</option>
+          <option value="Night" ${event.shiftType==="Night"?"selected":""}>Night Shift</option>
+          <option value="All" ${event.shiftType==="All"?"selected":""}>All Shifts</option>
+        </select>
+        <input placeholder="Town / City" value="${event.townCity || ""}" onchange="getCurrentPlannedMajorEvents()[${i}].townCity=this.value;${isSaved ? 'saveDataToAPI();' : ''}">
+      </div>
+      <div class="planned-closure-fields full-width">
+        <textarea placeholder="Blurb (Event description)" onchange="getCurrentPlannedMajorEvents()[${i}].blurb=this.value;${isSaved ? 'saveDataToAPI();' : ''}" style="min-height: 80px; width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">${event.blurb || ""}</textarea>
+      </div>
+      <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+        <button class="danger small" onclick="getCurrentPlannedMajorEvents().splice(${i},1);saveDataToAPI();renderNewMajorEventForm();renderActiveMajorEvents();renderFutureMajorEvents();renderPastMajorEvents();">➖ Remove</button>
+        ${!isSaved ? `<button class="primary small" onclick="getCurrentPlannedMajorEvents()[${i}].saved=true;saveDataToAPI();renderNewMajorEventForm();renderActiveMajorEvents();renderFutureMajorEvents();renderPastMajorEvents();">💾 Mark as Saved</button>` : ''}
+      </div>
+    </div>`;
+}
+
+function addPlannedMajorEvent(){
+  const plannedEvents = getCurrentPlannedMajorEvents();
+  plannedEvents.push({
+    startDate: "",
+    endDate: "",
+    shiftType: "All",
+    townCity: "",
+    blurb: "",
+    saved: false
+  });
+  renderNewMajorEventForm();
+}
+
+async function savePlannedMajorEvents(){
+  const plannedEvents = getCurrentPlannedMajorEvents();
+  plannedEvents.forEach(e => e.saved = true);
+  await saveDataToAPI();
+  renderNewMajorEventForm();
+  renderActiveMajorEvents();
+  renderFutureMajorEvents();
+  renderPastMajorEvents();
+}
+
+async function savePlannedMajorEventsWithFeedback(button){
+  const saveButton = button || document.querySelector('button[onclick*="savePlannedMajorEventsWithFeedback"]');
+  if (!saveButton) return;
+  
+  const originalText = saveButton.textContent;
+  saveButton.disabled = true;
+  saveButton.textContent = "💾 Saving...";
+  
+  try {
+    await savePlannedMajorEvents();
+    saveButton.textContent = "✅ Saved!";
+    saveButton.style.background = "#28a745";
+    setTimeout(() => {
+      saveButton.textContent = originalText;
+      saveButton.style.background = "";
+      saveButton.disabled = false;
+    }, 2000);
+  } catch (error) {
+    saveButton.textContent = "❌ Error";
+    saveButton.style.background = "#dc3545";
+    setTimeout(() => {
+      saveButton.textContent = originalText;
+      saveButton.style.background = "";
+      saveButton.disabled = false;
+    }, 2000);
+  }
+}
+
+function renderActiveMajorEvents(){
+  const plannedEvents = getCurrentPlannedMajorEvents();
+  const today = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  today.setHours(0,0,0,0);
+  
+  const list = document.getElementById('activeMajorEventsList');
+  if (!list) return;
+  list.innerHTML = "";
+  
+  const active = plannedEvents.filter(event => {
+    if (!event.startDate || !event.endDate) return false;
+    const start = new Date(event.startDate);
+    const end = new Date(event.endDate);
+    end.setHours(23,59,59);
+    return today >= start && today <= end;
+  });
+  
+  active.sort((a, b) => {
+    const dateA = a.startDate ? new Date(a.startDate) : new Date(0);
+    const dateB = b.startDate ? new Date(b.startDate) : new Date(0);
+    return dateA - dateB;
+  });
+  
+  if (active.length === 0) {
+    list.innerHTML = "<p>No active major events.</p>";
+  } else {
+    active.forEach((event, idx) => {
+      const i = plannedEvents.indexOf(event);
+      list.innerHTML += renderMajorEventItem(event, i);
+    });
+  }
+}
+
+function renderFutureMajorEvents(){
+  const plannedEvents = getCurrentPlannedMajorEvents();
+  const today = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  today.setHours(0,0,0,0);
+  
+  const list = document.getElementById('futureMajorEventsList');
+  if (!list) return;
+  list.innerHTML = "";
+  
+  const future = plannedEvents.filter(event => {
+    if (!event.startDate) return false;
+    const start = new Date(event.startDate);
+    return start > today;
+  });
+  
+  future.sort((a, b) => {
+    const dateA = a.startDate ? new Date(a.startDate) : new Date(0);
+    const dateB = b.startDate ? new Date(b.startDate) : new Date(0);
+    return dateA - dateB;
+  });
+  
+  if (future.length === 0) {
+    list.innerHTML = "<p>No future major events.</p>";
+  } else {
+    future.forEach((event, idx) => {
+      const i = plannedEvents.indexOf(event);
+      list.innerHTML += renderMajorEventItem(event, i);
+    });
+  }
+}
+
+function renderPastMajorEvents(){
+  const plannedEvents = getCurrentPlannedMajorEvents();
+  const today = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  today.setHours(23,59,59,999);
+  
+  const list = document.getElementById('pastMajorEventsList');
+  if (!list) return;
+  list.innerHTML = "";
+  
+  const past = plannedEvents.filter(event => {
+    if (!event.endDate) return false;
+    const end = new Date(event.endDate);
+    return end < today;
+  });
+  
+  past.sort((a, b) => {
+    const dateA = a.endDate ? new Date(a.endDate) : new Date(0);
+    const dateB = b.endDate ? new Date(b.endDate) : new Date(0);
+    return dateB - dateA;
+  });
+  
+  if (past.length === 0) {
+    list.innerHTML = "<p>No past major events.</p>";
+  } else {
+    past.forEach((event, idx) => {
+      const i = plannedEvents.indexOf(event);
+      list.innerHTML += renderMajorEventItem(event, i);
+    });
+  }
+}
+
+function renderMajorEventItem(event, i){
+  const startDate = event.startDate || "";
+  const endDate = event.endDate || "";
+  return `
+    <div class="closure-item" style="margin-bottom: 16px; padding: 16px; border: 1px solid #ddd; border-radius: 6px; background-color: #ffffff;">
+      <div class="planned-closure-fields">
+        <input type="date" placeholder="Start Date" value="${startDate}" onchange="getCurrentPlannedMajorEvents()[${i}].startDate=this.value;saveDataToAPI();renderActiveMajorEvents();renderFutureMajorEvents();renderPastMajorEvents();">
+        <input type="date" placeholder="Finish Date" value="${endDate}" onchange="getCurrentPlannedMajorEvents()[${i}].endDate=this.value;saveDataToAPI();renderActiveMajorEvents();renderFutureMajorEvents();renderPastMajorEvents();">
+      </div>
+      <div class="planned-closure-fields">
+        <select onchange="getCurrentPlannedMajorEvents()[${i}].shiftType=this.value;saveDataToAPI()">
+          <option value="Day" ${event.shiftType==="Day"?"selected":""}>Day Shift</option>
+          <option value="Night" ${event.shiftType==="Night"?"selected":""}>Night Shift</option>
+          <option value="All" ${event.shiftType==="All"?"selected":""}>All Shifts</option>
+        </select>
+        <input placeholder="Town / City" value="${event.townCity || ""}" onchange="getCurrentPlannedMajorEvents()[${i}].townCity=this.value;saveDataToAPI()">
+      </div>
+      <div class="planned-closure-fields full-width">
+        <textarea placeholder="Blurb (Event description)" onchange="getCurrentPlannedMajorEvents()[${i}].blurb=this.value;saveDataToAPI()" style="min-height: 80px; width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">${event.blurb || ""}</textarea>
+      </div>
+      <div style="margin-top: 8px;">
+        <button class="danger small" onclick="getCurrentPlannedMajorEvents().splice(${i},1);saveDataToAPI();renderNewMajorEventForm();renderActiveMajorEvents();renderFutureMajorEvents();renderPastMajorEvents();">➖ Remove</button>
+      </div>
+    </div>`;
 }
 
 async function saveTemporaryClosures(){
@@ -2385,9 +2754,41 @@ function render(){
   const fleet = document.getElementById("fleet");
   const fleetLines = fleet.value.trim() ? fleet.value.split('\n').filter(line => line.trim()) : ["No fleet movements this shift."];
   
-  // Major Events
+  // Major Events - combine manual entries with planned events
   const majorEvents = document.getElementById("majorEvents");
-  const majorEventsLines = majorEvents.value.trim() ? majorEvents.value.split('\n').filter(line => line.trim()) : [];
+  const manualMajorEventsLines = majorEvents.value.trim() ? majorEvents.value.split('\n').filter(line => line.trim()) : [];
+  
+  // Get planned major events for current date and shift
+  const plannedMajorEvents = getCurrentPlannedMajorEvents();
+  const selectedDateObjForEvents = selectedDate.value ? new Date(selectedDate.value) : new Date();
+  selectedDateObjForEvents.setHours(0, 0, 0, 0);
+  const currentShiftForEvents = shift.value;
+  
+  const plannedEventsForDate = plannedMajorEvents.filter(event => {
+    if (!event.startDate || !event.endDate) return false;
+    const startDate = new Date(event.startDate);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(event.endDate);
+    endDate.setHours(23, 59, 59);
+    
+    // Check if date is within range
+    if (selectedDateObjForEvents >= startDate && selectedDateObjForEvents <= endDate) {
+      // Check shift match
+      const shiftMatch = event.shiftType === "All" || event.shiftType === currentShiftForEvents;
+      return shiftMatch;
+    }
+    return false;
+  });
+  
+  // Format planned events as lines (Town/City - Blurb)
+  const plannedEventsLines = plannedEventsForDate.map(event => {
+    const townCity = event.townCity || "";
+    const blurb = event.blurb || "";
+    return townCity && blurb ? `${townCity} - ${blurb}` : (townCity || blurb);
+  }).filter(Boolean);
+  
+  // Combine manual and planned events
+  const majorEventsLines = [...manualMajorEventsLines, ...plannedEventsLines];
   
   // Other
   const other = document.getElementById("other");
@@ -3102,6 +3503,11 @@ function navigateToPage(pageId) {
     // Render planned closures when navigating to planned closures page
     if (pageId === 'planned-closures') {
       renderPlannedClosuresPage();
+    }
+    
+    // Render planned major events when navigating to planned major events page
+    if (pageId === 'planned-major-events') {
+      renderPlannedMajorEventsPage();
     }
   }
 }
