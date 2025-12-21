@@ -839,6 +839,9 @@ button:hover {
   <label>🚗 Fleet Movements</label>
   <textarea id="fleet" placeholder="Enter fleet movements or leave empty for default message"></textarea>
 
+  <label>🎯 Major Events</label>
+  <textarea id="majorEvents" placeholder="Enter major events (one per line)"></textarea>
+
   <label>📌 Other</label>
   <textarea id="other" placeholder="Enter other notes or leave empty for default message"></textarea>
 
@@ -2256,9 +2259,15 @@ function render(){
   const manager = managerIndex >= 0 && dutyManagers[managerIndex] ? dutyManagers[managerIndex] : null;
   
   // Fleet Movements
+  const fleet = document.getElementById("fleet");
   const fleetLines = fleet.value.trim() ? fleet.value.split('\n').filter(line => line.trim()) : ["No fleet movements this shift."];
   
+  // Major Events
+  const majorEvents = document.getElementById("majorEvents");
+  const majorEventsLines = majorEvents.value.trim() ? majorEvents.value.split('\n').filter(line => line.trim()) : [];
+  
   // Other
+  const other = document.getElementById("other");
   const otherLines = other.value.trim() ? other.value.split('\n').filter(line => line.trim()) : ["Nothing extra to report."];
   
   const shiftLabel = shift.value === "Night" ? "Night" : "Day";
@@ -2416,6 +2425,18 @@ function render(){
                 </td>
               </tr>
             </table>
+
+            ${majorEventsLines.length > 0 ? `
+            <!-- Major Events -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px;">
+              <tr>
+                <td>
+                  <h2 style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #007A33; text-transform: uppercase; letter-spacing: 0.5px; color: rgb(0,122,51);">Major Events</h2>
+                  <ul style="margin: 0; padding-left: 20px;">${majorEventsLines.map(line => `<li style="margin: 8px 0; font-size: 14px; color: #1a1a1a; line-height: 1.7;">${line}</li>`).join('')}</ul>
+                </td>
+              </tr>
+            </table>
+            ` : ''}
 
             <!-- Additional Information -->
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
