@@ -1392,6 +1392,22 @@ function loadDataFromLocalStorage() {
     callsignsByArea = savedCallsignsByArea || defaultData.callsignsByArea;
   }
   
+  // Migrate string-based callsigns to object format with timing
+  Object.keys(callsignsByArea).forEach(area => {
+    if (callsignsByArea[area]) {
+      callsignsByArea[area] = callsignsByArea[area].map(c => {
+        if (typeof c === 'string') {
+          return { name: c, timing: '24HR' };
+        }
+        // Ensure existing objects have timing property
+        if (c && !c.timing) {
+          c.timing = '24HR';
+        }
+        return c;
+      });
+    }
+  });
+  
   // Migrate old dayTasks format to new area-based format
   const oldDayTasks = JSON.parse(localStorage.getItem("dayTasks"));
   const savedDayTasksByArea = JSON.parse(localStorage.getItem("dayTasksByArea"));
@@ -1558,10 +1574,25 @@ function renderSettings(){
   
   callsignList.innerHTML = "";
   callsigns.forEach((c,i)=>{
+    // Handle backward compatibility: if callsign is a string, convert to object
+    const callsignObj = typeof c === 'string' ? {name: c, timing: '24HR'} : c;
+    const callsignName = callsignObj.name || c;
+    const callsignTiming = callsignObj.timing || '24HR';
+    
+    // Update the array to use the object format
+    if (typeof c === 'string') {
+      callsigns[i] = callsignObj;
+    }
+    
     callsignList.innerHTML += `
-      <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'};">
-        <input value="${c}" onchange="getCurrentCallsigns()[${i}]=this.value;saveDataToAPI();">
-        <button class="danger small" onclick="getCurrentCallsigns().splice(${i},1);saveDataToAPI();renderSettings()">➖</button>
+      <div class="row" style="margin-top: ${i === 0 ? '0' : '8px'}; align-items: center;">
+        <input value="${callsignName}" placeholder="Callsign" style="flex: 1;" onchange="getCurrentCallsigns()[${i}].name=this.value;saveDataToAPI();">
+        <select style="width: 140px; margin-left: 8px;" onchange="getCurrentCallsigns()[${i}].timing=this.value;saveDataToAPI();renderCrewingChecks();render();">
+          <option value="24HR" ${callsignTiming==='24HR'?'selected':''}>24HR</option>
+          <option value="Day Only" ${callsignTiming==='Day Only'?'selected':''}>Day Only</option>
+          <option value="Night Only" ${callsignTiming==='Night Only'?'selected':''}>Night Only</option>
+        </select>
+        <button class="danger small" onclick="getCurrentCallsigns().splice(${i},1);saveDataToAPI();renderSettings()" style="margin-left: 8px;">➖</button>
       </div>`;
   });
   
@@ -1573,7 +1604,7 @@ function renderSettings(){
 
 function addCallsign(){
   const callsigns = getCurrentCallsigns();
-  callsigns.push("");
+  callsigns.push({name: "", timing: "24HR"});
   saveDataToAPI();
   renderSettings();
 }
@@ -1796,19 +1827,36 @@ async function saveSettingsWithFeedback(button){
 function renderCrewingChecks(){
   crewingChecks.innerHTML = "";
   const callsigns = getCurrentCallsigns();
-  callsigns.forEach(c=>{
-    const status = crewingStatus[c] || "fully";
-    const atp = atpStatus[c] || "N/A";
+  const currentShift = shift.value; // "Day" or "Night"
+  
+  // Filter callsigns based on timing and current shift
+  const filteredCallsigns = callsigns.filter(c => {
+    // Handle backward compatibility: if callsign is a string, treat as 24HR
+    if (typeof c === 'string') return true;
+    
+    const timing = c.timing || '24HR';
+    if (timing === '24HR') return true;
+    if (timing === 'Day Only' && currentShift === 'Day') return true;
+    if (timing === 'Night Only' && currentShift === 'Night') return true;
+    return false;
+  });
+  
+  filteredCallsigns.forEach(c => {
+    // Get callsign name (handle both string and object format)
+    const callsignName = typeof c === 'string' ? c : (c.name || '');
+    
+    const status = crewingStatus[callsignName] || "fully";
+    const atp = atpStatus[callsignName] || "N/A";
     crewingChecks.innerHTML += `
       <div class="crewing-row">
-        <label>${c}</label>
-        <select data-call="${c}" onchange="crewingStatus['${c}']=this.value;saveDataToAPI();render()">
+        <label>${callsignName}</label>
+        <select data-call="${callsignName}" onchange="crewingStatus['${callsignName}']=this.value;saveDataToAPI();render()">
           <option value="fully" ${status==="fully"?"selected":""}>Fully Crewed</option>
           <option value="single" ${status==="single"?"selected":""}>Single Crewed</option>
           <option value="uncrewed" ${status==="uncrewed"?"selected":""}>Uncrewed</option>
           <option value="N/A" ${status==="N/A"?"selected":""}>N/A</option>
         </select>
-        <select data-call="${c}" data-type="atp" onchange="atpStatus['${c}']=this.value;saveDataToAPI();render()">
+        <select data-call="${callsignName}" data-type="atp" onchange="atpStatus['${callsignName}']=this.value;saveDataToAPI();render()">
           <option value="N/A" ${atp==="N/A"?"selected":""}>N/A</option>
           <option value="CCP" ${atp==="CCP"?"selected":""}>CCP</option>
           <option value="ECP" ${atp==="ECP"?"selected":""}>ECP</option>
@@ -2236,7 +2284,24 @@ function render(){
   ];
 
   // Crewing
-  const callsigns = getCurrentCallsigns();
+  const allCallsigns = getCurrentCallsigns();
+  const currentShift = shift.value; // "Day" or "Night"
+  
+  // Filter callsigns based on timing and current shift
+  const callsigns = allCallsigns.filter(c => {
+    // Handle backward compatibility: if callsign is a string, treat as 24HR
+    if (typeof c === 'string') return true;
+    
+    const timing = c.timing || '24HR';
+    if (timing === '24HR') return true;
+    if (timing === 'Day Only' && currentShift === 'Day') return true;
+    if (timing === 'Night Only' && currentShift === 'Night') return true;
+    return false;
+  }).map(c => {
+    // Get callsign name (handle both string and object format)
+    return typeof c === 'string' ? c : (c.name || '');
+  });
+  
   const crewStatuses = callsigns.map(c => ({
     callsign: c,
     status: crewingStatus[c] || "fully"
@@ -2505,6 +2570,7 @@ document.querySelectorAll("input,textarea,select").forEach(e => {
     if (e.id === "day" || e.id === "shift") {
       checkPlannedClosures();
       updateTaskDisplay();
+      renderCrewingChecks(); // Re-render crewing checks when shift changes
     }
     render();
   });
