@@ -2062,6 +2062,7 @@ function renderNewClosureForm(){
   // Display unsaved closures first (editing section)
   if (unsavedClosures.length > 0) {
     newClosureForm.innerHTML += `<h4 style="margin-top: 20px; margin-bottom: 12px; color: #007A33; font-size: 16px;">📝 Editing (Unsaved)</h4>`;
+    newClosureForm.innerHTML += renderClosureHeader();
     unsavedClosures.forEach((closure)=>{
       const i = plannedClosures.indexOf(closure);
       newClosureForm.innerHTML += renderClosureFormItem(closure, i, false);
@@ -2071,6 +2072,7 @@ function renderNewClosureForm(){
   // Display saved closures (sorted)
   if (savedClosures.length > 0) {
     newClosureForm.innerHTML += `<h4 style="margin-top: ${unsavedClosures.length > 0 ? '30px' : '0px'}; margin-bottom: 12px; color: #007A33; font-size: 16px;">✅ Saved Road Closures</h4>`;
+    newClosureForm.innerHTML += renderClosureHeader();
     
     // Sort by start date (ascending)
     const sorted = [...savedClosures].sort((a, b) => {
@@ -2084,6 +2086,27 @@ function renderNewClosureForm(){
       newClosureForm.innerHTML += renderClosureFormItem(closure, i, true);
     });
   }
+}
+
+function renderClosureHeader(){
+  return `
+    <div class="closure-item" style="border: 1px solid #007A33; background-color: #f0f8f4; margin-bottom: 8px; padding: 12px 16px; border-radius: 6px; font-weight: 600; color: #007A33;">
+      <div class="planned-closure-fields">
+        <div>Start Date</div>
+        <div>End Date</div>
+      </div>
+      <div class="planned-closure-fields">
+        <div>Timings</div>
+        <div>Road Name</div>
+      </div>
+      <div class="planned-closure-fields">
+        <div>Type</div>
+        <div>Closure Info</div>
+      </div>
+      <div class="planned-closure-fields full-width">
+        <div>Detour</div>
+      </div>
+    </div>`;
 }
 
 function renderClosureFormItem(closure, i, isSaved){
@@ -2144,6 +2167,7 @@ function renderActiveClosures(){
   if (active.length === 0) {
     activeClosuresList.innerHTML = "<p>No active road closures.</p>";
   } else {
+    activeClosuresList.innerHTML = renderClosureHeader();
     active.forEach((closure, idx) => {
       const i = plannedClosures.indexOf(closure);
       activeClosuresList.innerHTML += renderClosureItem(closure, i);
@@ -2173,6 +2197,7 @@ function renderFutureClosures(){
   if (future.length === 0) {
     futureClosuresList.innerHTML = "<p>No future road closures.</p>";
   } else {
+    futureClosuresList.innerHTML = renderClosureHeader();
     future.forEach((closure, idx) => {
       const i = plannedClosures.indexOf(closure);
       futureClosuresList.innerHTML += renderClosureItem(closure, i);
@@ -2202,6 +2227,7 @@ function renderPastClosures(){
   if (past.length === 0) {
     pastClosuresList.innerHTML = "<p>No past road closures.</p>";
   } else {
+    pastClosuresList.innerHTML = renderClosureHeader();
     past.forEach((closure, idx) => {
       const i = plannedClosures.indexOf(closure);
       pastClosuresList.innerHTML += renderClosureItem(closure, i);
@@ -2372,6 +2398,7 @@ function renderNewMajorEventForm(){
   // Display unsaved events first
   if (unsavedEvents.length > 0) {
     form.innerHTML += `<h4 style="margin-top: 20px; margin-bottom: 12px; color: #007A33; font-size: 16px;">📝 Editing (Unsaved)</h4>`;
+    form.innerHTML += renderMajorEventHeader();
     unsavedEvents.forEach((event)=>{
       const i = plannedEvents.indexOf(event);
       form.innerHTML += renderMajorEventFormItem(event, i, false);
@@ -2381,6 +2408,7 @@ function renderNewMajorEventForm(){
   // Display saved events (sorted)
   if (savedEvents.length > 0) {
     form.innerHTML += `<h4 style="margin-top: ${unsavedEvents.length > 0 ? '30px' : '0px'}; margin-bottom: 12px; color: #007A33; font-size: 16px;">✅ Saved Major Events</h4>`;
+    form.innerHTML += renderMajorEventHeader();
     
     const sorted = [...savedEvents].sort((a, b) => {
       const dateA = a.startDate ? new Date(a.startDate) : new Date(0);
@@ -2393,6 +2421,26 @@ function renderNewMajorEventForm(){
       form.innerHTML += renderMajorEventFormItem(event, i, true);
     });
   }
+}
+
+function renderMajorEventHeader(){
+  return `
+    <div class="closure-item" style="border: 1px solid #007A33; background-color: #f0f8f4; margin-bottom: 8px; padding: 12px 16px; border-radius: 6px; font-weight: 600; color: #007A33;">
+      <div class="planned-closure-fields">
+        <div>Start Date</div>
+        <div>Finish Date</div>
+      </div>
+      <div class="planned-closure-fields">
+        <div>Timings</div>
+        <div>Event Name</div>
+      </div>
+      <div class="planned-closure-fields">
+        <div>Town / City</div>
+      </div>
+      <div class="planned-closure-fields full-width">
+        <div>Blurb</div>
+      </div>
+    </div>`;
 }
 
 function renderMajorEventFormItem(event, i, isSaved){
@@ -2413,6 +2461,9 @@ function renderMajorEventFormItem(event, i, isSaved){
           <option value="Night" ${event.shiftType==="Night"?"selected":""}>Night Shift</option>
           <option value="All" ${event.shiftType==="All"?"selected":""}>All Shifts</option>
         </select>
+        <input placeholder="Event Name" value="${event.eventName || ""}" onchange="getCurrentPlannedMajorEvents()[${i}].eventName=this.value;${isSaved ? 'saveDataToAPI();' : ''}">
+      </div>
+      <div class="planned-closure-fields">
         <input placeholder="Town / City" value="${event.townCity || ""}" onchange="getCurrentPlannedMajorEvents()[${i}].townCity=this.value;${isSaved ? 'saveDataToAPI();' : ''}">
       </div>
       <div class="planned-closure-fields full-width">
@@ -2431,6 +2482,7 @@ function addPlannedMajorEvent(){
     startDate: "",
     endDate: "",
     shiftType: "All",
+    eventName: "",
     townCity: "",
     blurb: "",
     saved: false
@@ -2502,6 +2554,7 @@ function renderActiveMajorEvents(){
   if (active.length === 0) {
     list.innerHTML = "<p>No active major events.</p>";
   } else {
+    list.innerHTML = renderMajorEventHeader();
     active.forEach((event, idx) => {
       const i = plannedEvents.indexOf(event);
       list.innerHTML += renderMajorEventItem(event, i);
@@ -2533,6 +2586,7 @@ function renderFutureMajorEvents(){
   if (future.length === 0) {
     list.innerHTML = "<p>No future major events.</p>";
   } else {
+    list.innerHTML = renderMajorEventHeader();
     future.forEach((event, idx) => {
       const i = plannedEvents.indexOf(event);
       list.innerHTML += renderMajorEventItem(event, i);
@@ -2564,6 +2618,7 @@ function renderPastMajorEvents(){
   if (past.length === 0) {
     list.innerHTML = "<p>No past major events.</p>";
   } else {
+    list.innerHTML = renderMajorEventHeader();
     past.forEach((event, idx) => {
       const i = plannedEvents.indexOf(event);
       list.innerHTML += renderMajorEventItem(event, i);
@@ -2586,6 +2641,9 @@ function renderMajorEventItem(event, i){
           <option value="Night" ${event.shiftType==="Night"?"selected":""}>Night Shift</option>
           <option value="All" ${event.shiftType==="All"?"selected":""}>All Shifts</option>
         </select>
+        <input placeholder="Event Name" value="${event.eventName || ""}" onchange="getCurrentPlannedMajorEvents()[${i}].eventName=this.value;saveDataToAPI()">
+      </div>
+      <div class="planned-closure-fields">
         <input placeholder="Town / City" value="${event.townCity || ""}" onchange="getCurrentPlannedMajorEvents()[${i}].townCity=this.value;saveDataToAPI()">
       </div>
       <div class="planned-closure-fields full-width">
@@ -2780,11 +2838,19 @@ function render(){
     return false;
   });
   
-  // Format planned events as lines (Town/City - Blurb)
+  // Format planned events as lines (Event Name - Town/City - Blurb)
   const plannedEventsLines = plannedEventsForDate.map(event => {
+    const eventName = event.eventName || "";
     const townCity = event.townCity || "";
     const blurb = event.blurb || "";
-    return townCity && blurb ? `${townCity} - ${blurb}` : (townCity || blurb);
+    
+    // Build the line with available information
+    const parts = [];
+    if (eventName) parts.push(eventName);
+    if (townCity) parts.push(townCity);
+    if (blurb) parts.push(blurb);
+    
+    return parts.length > 0 ? parts.join(" - ") : "";
   }).filter(Boolean);
   
   // Combine manual and planned events
