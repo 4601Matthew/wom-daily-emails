@@ -887,7 +887,7 @@ button:hover {
       <input type="date" id="womDate" onchange="updateWomTitleFromDate();">
 
       <label>📋 Title</label>
-      <input type="text" id="womTitle" placeholder="e.g., Area WOM Comms - 15 January 2025" value="" oninput="renderWomEmail();">
+      <input type="text" id="womTitle" placeholder="e.g., Area WOM/GOM Comms - 15 January 2025" value="" oninput="renderWomEmail();">
 
       <label>📝 Introduction</label>
       <textarea id="womIntroduction" placeholder="Enter introduction text (will appear in bold)" oninput="renderWomEmail();"></textarea>
@@ -1323,6 +1323,16 @@ function getManagementTeamName() {
     'ruapehu': 'Ruapehu Area Management Team'
   };
   return teamNames[area] || 'Area Management Team';
+}
+
+// Helper function to get WOM or GOM based on area
+function getWomOrGom() {
+  const area = getCurrentArea();
+  // Horowhenua, Ruapehu, and Whanganui use GOM, others use WOM
+  if (area === 'horowhenua' || area === 'ruapehu' || area === 'whanganui') {
+    return 'GOM';
+  }
+  return 'WOM';
 }
 
 /* ---------- API FUNCTIONS ---------- */
@@ -3165,7 +3175,8 @@ function updateWomTitleFromDate() {
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
     const formattedDate = date.toLocaleDateString('en-NZ', options);
     const areaName = getAreaDisplayName();
-    titleInput.value = `${areaName} WOM Comms - ${formattedDate}`;
+    const womOrGom = getWomOrGom();
+    titleInput.value = `${areaName} ${womOrGom} Comms - ${formattedDate}`;
     renderWomEmail();
   }
 }
@@ -3175,8 +3186,10 @@ function renderWomEmail() {
   if (!preview) return;
   
   const areaName = getAreaDisplayName();
-  const title = document.getElementById('womTitle')?.value || `${areaName} WOM Comms`;
+  const womOrGom = getWomOrGom();
+  const title = document.getElementById('womTitle')?.value || `${areaName} ${womOrGom} Comms`;
   const introduction = document.getElementById('womIntroduction')?.value || '';
+  const currentArea = getCurrentArea();
   
   // Build sections HTML
   let sectionsHTML = '';
@@ -3238,6 +3251,7 @@ function renderWomEmail() {
             ${sectionsHTML}
             ${attachmentsHTML}
             
+            ${currentArea === 'mt-taranaki' ? `
             <!-- Staff Committee Link -->
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 20px;">
               <tr>
@@ -3249,6 +3263,7 @@ function renderWomEmail() {
                 </td>
               </tr>
             </table>
+            ` : ''}
           </td>
         </tr>
         
@@ -3607,6 +3622,17 @@ function initializeApp() {
   }
   renderWomSections();
   renderWomEmail();
+  
+  // Initialize Important Update
+  const importantDateInput = document.getElementById('importantDate');
+  if (importantDateInput) {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    importantDateInput.value = `${year}-${month}-${day}`;
+    updateImportantTitleFromDate();
+  }
 }
 
 // Function to handle area selection and show main content
