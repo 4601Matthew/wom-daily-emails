@@ -3419,7 +3419,8 @@ function updateImportantTitleFromDate() {
     const date = new Date(dateInput.value);
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
     const formattedDate = date.toLocaleDateString('en-NZ', options);
-    const areaName = getAreaDisplayName();
+    const area = getCurrentArea();
+    const areaName = area === 'central' ? 'Central District' : getAreaDisplayName();
     titleInput.value = `${areaName} Important Update - ${formattedDate}`;
     renderImportantEmail();
   }
@@ -3429,7 +3430,8 @@ function renderImportantEmail() {
   const preview = document.getElementById('importantPreview');
   if (!preview) return;
   
-  const areaName = getAreaDisplayName();
+  const area = getCurrentArea();
+  const areaName = area === 'central' ? 'Central District' : getAreaDisplayName();
   const title = document.getElementById('importantTitle')?.value || `${areaName} Important Update`;
   const introduction = document.getElementById('importantIntroduction')?.value || '';
   
