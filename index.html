@@ -1028,27 +1028,37 @@ html { scroll-behavior: smooth; }
 <div id="wom-comms" class="page-section">
   <div class="container">
     <!-- BUILDER -->
-    <div class="card builder-card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <div class="card builder-card email-builder-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <h3 style="margin: 0; border-bottom: 2px solid #007A33; padding-bottom: 8px; flex: 1;">📢 WOM Comms Builder</h3>
         <button class="small secondary" onclick="openHelpModal('wom-comms-help')" style="margin-left: 16px;">❓ Help</button>
       </div>
 
-      <label>📅 Date</label>
-      <input type="date" id="womDate" onchange="updateWomTitleFromDate();">
+      <details class="builder-section" open>
+        <summary>📅 Date & Title</summary>
+        <div class="section-inner">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div><label>Date</label><input type="date" id="womDate" onchange="updateWomTitleFromDate();"></div>
+            <div><label>Title</label><input type="text" id="womTitle" placeholder="e.g. Area WOM/GOM Comms - 15 Jan 2025" value="" oninput="renderWomEmail();"></div>
+          </div>
+        </div>
+      </details>
 
-      <label>📋 Title</label>
-      <input type="text" id="womTitle" placeholder="e.g., Area WOM/GOM Comms - 15 January 2025" value="" oninput="renderWomEmail();">
-
-      <label>📝 Introduction</label>
-      <textarea id="womIntroduction" placeholder="Enter introduction text (will appear in bold)" oninput="renderWomEmail();"></textarea>
-
-      <label>📄 Sections</label>
-      <div id="womSections" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;"></div>
-      <button class="small primary" onclick="addWomSection()" style="margin-top: 8px;">➕ Add Section</button>
-
-      <label>📎 Attachments</label>
-      <textarea id="womAttachments" placeholder="Enter attachments (one per line)" oninput="renderWomEmail();" style="min-height: 80px;"></textarea>
+      <details class="builder-section" open>
+        <summary>📝 Content</summary>
+        <div class="section-inner">
+          <div><label>Introduction</label>
+            <textarea id="womIntroduction" placeholder="Enter introduction (appears in bold)" oninput="renderWomEmail();"></textarea>
+          </div>
+          <div><label>Sections</label>
+            <div id="womSections" style="display: flex; flex-direction: column; gap: 10px; min-width: 0;"></div>
+            <button class="small primary" onclick="addWomSection()" style="margin-top: 8px;">➕ Add Section</button>
+          </div>
+          <div><label>Attachments</label>
+            <textarea id="womAttachments" placeholder="Enter attachments (one per line)" oninput="renderWomEmail();"></textarea>
+          </div>
+        </div>
+      </details>
 
       <div class="row" style="margin-top: 16px;">
         <button class="primary" onclick="copyWomEmail()">📋 Copy Email</button>
@@ -1057,7 +1067,7 @@ html { scroll-behavior: smooth; }
     </div>
 
     <!-- PREVIEW -->
-    <div class="card">
+    <div class="card email-builder-preview">
       <h3>📧 Email Preview</h3>
       <div id="womPreview" class="preview"></div>
     </div>
