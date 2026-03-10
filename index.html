@@ -274,12 +274,22 @@ body {
   margin: 0 auto;
   padding: 24px;
   display: grid;
-  grid-template-columns: 420px 1fr;
-  gap: 28px;
+  grid-template-columns: 400px 1fr;
+  gap: 24px;
+  align-items: start;
 }
 
 @media (max-width: 1024px) {
   .container { grid-template-columns: 1fr; }
+}
+
+.email-builder-preview {
+  position: sticky;
+  top: 24px;
+}
+
+@media (max-width: 1024px) {
+  .email-builder-preview { position: static; }
 }
 
 .card {
@@ -294,6 +304,65 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.email-builder-card .builder-section {
+  margin-top: 0;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.email-builder-card .builder-section summary {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-soft);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.email-builder-card .builder-section summary::-webkit-details-marker { display: none; }
+
+.email-builder-card .builder-section summary::before {
+  content: '▶';
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.email-builder-card .builder-section[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.email-builder-card .builder-section .section-inner {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.email-builder-card .builder-section summary + .section-inner {
+  border-top: 1px solid var(--border-light);
+}
+
+.email-builder-card label {
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.email-builder-card label:first-child,
+.email-builder-card .section-inner label:first-child { margin-top: 0; }
+
+.email-builder-card textarea { min-height: 60px; }
+
+@media (max-width: 500px) {
+  .email-builder-card .section-inner [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 .builder-card h3 {
@@ -844,63 +913,79 @@ html { scroll-behavior: smooth; }
 <div class="container">
 
 <!-- BUILDER -->
-<div class="card builder-card">
+<div class="card builder-card email-builder-card">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
     <h3 style="margin: 0; border-bottom: 2px solid #007A33; padding-bottom: 8px; flex: 1;">📋 Duty Email Builder</h3>
     <button class="small secondary" onclick="openHelpModal('email-builder-help')" style="margin-left: 16px;">❓ Help</button>
   </div>
 
-  <label>📅 Date</label>
-  <input type="date" id="selectedDate">
+  <details class="builder-section" open>
+    <summary>📅 Shift & Tasks</summary>
+    <div class="section-inner">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div><label>Date</label><input type="date" id="selectedDate"></div>
+        <div><label>Day</label><select id="day"></select></div>
+      </div>
+      <div><label>Shift</label>
+        <select id="shift">
+          <option value="Day">Day Shift</option>
+          <option value="Night">Night Shift</option>
+        </select>
+      </div>
+      <div><label>Greeting Comment (optional)</label>
+        <textarea id="greetingComment" placeholder="Add comments after the greeting..."></textarea>
+      </div>
+      <div><label>Tasks</label>
+        <div id="taskDisplay" style="background: var(--bg-soft); padding: 12px; border-radius: 8px; min-height: 36px; font-size: 13px; color: var(--text-secondary); border: 1px solid var(--border-light);">Configure tasks in Settings</div>
+      </div>
+      <div><label>Extra Tasks</label>
+        <textarea id="extraTasks" placeholder="Add tasks (one per line)"></textarea>
+      </div>
+    </div>
+  </details>
 
-  <label>📅 Day & Shift</label>
-  <div class="shift-selector">
-  <select id="day"></select>
-    <select id="shift">
-      <option value="Day">Day Shift</option>
-      <option value="Night">Night Shift</option>
-    </select>
-  </div>
+  <details class="builder-section" open>
+    <summary>🚑 Crewing</summary>
+    <div class="section-inner">
+      <div><label>Crewing Status</label>
+        <div id="crewingChecks"></div>
+        <button class="small secondary" onclick="addTemporaryCallsign()" style="margin-top: 8px;">➕ Add Temporary Callsign</button>
+      </div>
+      <div><label>Crewing Notes</label>
+        <textarea id="crewingNotes" placeholder="Additional crewing notes..."></textarea>
+      </div>
+    </div>
+  </details>
 
-  <label>💬 Greeting Comment (Optional)</label>
-  <textarea id="greetingComment" placeholder="Add any additional comments after the greeting..."></textarea>
+  <details class="builder-section">
+    <summary>🛣️ Road Closures & Events</summary>
+    <div class="section-inner">
+      <div><label>Road Closures</label>
+        <div id="closures"></div>
+        <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+          <button class="small primary" onclick="navigateToPage('planned-closures')">📅 Plan Closures</button>
+          <button class="small primary" onclick="addClosure()">➕ Add Closure</button>
+        </div>
+      </div>
+      <div><label>Major Events</label>
+        <textarea id="majorEvents" placeholder="Enter major events (one per line)"></textarea>
+        <button class="small primary" onclick="navigateToPage('planned-major-events')" style="margin-top: 8px;">📅 Plan Major Events</button>
+      </div>
+    </div>
+  </details>
 
-  <label>✅ Tasks</label>
-  <div id="taskDisplay" style="background: var(--bg-soft); padding: 14px; border-radius: 10px; min-height: 44px; font-size: 14px; color: var(--text-secondary); border: 1px solid var(--border-light);">
-    Configure tasks in Settings
-  </div>
-
-  <label>➕ Extra Tasks</label>
-  <textarea id="extraTasks" placeholder="Add additional tasks (one per line)"></textarea>
-
-  <label>🚑 Crewing Status</label>
-  <div id="crewingChecks"></div>
-  <button class="small secondary" onclick="addTemporaryCallsign()" style="margin-top: 8px;">➕ Add Temporary Callsign</button>
-
-  <label>📝 Crewing Notes</label>
-  <textarea id="crewingNotes" placeholder="Additional crewing notes..."></textarea>
-
-  <label>🛣️ Road Closures</label>
-  <div id="closures"></div>
-  <div style="display: flex; gap: 8px; margin-top: 8px;">
-    <button class="small primary" onclick="navigateToPage('planned-closures')">📅 Plan Road Closures</button>
-  <button class="small primary" onclick="addClosure()">➕ Add Road Closure</button>
-  </div>
-
-  <label>👤 Duty Manager</label>
-  <select id="dutyManager"></select>
-
-  <label>🚗 Fleet Movements</label>
-  <textarea id="fleet" placeholder="Enter fleet movements or leave empty for default message"></textarea>
-
-  <label>🎯 Major Events</label>
-  <textarea id="majorEvents" placeholder="Enter major events (one per line)"></textarea>
-  <div style="display: flex; gap: 8px; margin-top: 8px;">
-    <button class="small primary" onclick="navigateToPage('planned-major-events')">📅 Plan Major Events</button>
-  </div>
-
-  <label>📌 Other</label>
-  <textarea id="other" placeholder="Enter other notes or leave empty for default message"></textarea>
+  <details class="builder-section">
+    <summary>📌 Duty Manager & Other</summary>
+    <div class="section-inner">
+      <div><label>Duty Manager</label><select id="dutyManager"></select></div>
+      <div><label>Fleet Movements</label>
+        <textarea id="fleet" placeholder="Leave empty for default"></textarea>
+      </div>
+      <div><label>Other</label>
+        <textarea id="other" placeholder="Leave empty for default"></textarea>
+      </div>
+    </div>
+  </details>
 
   <div class="row" style="margin-top: 16px;">
     <button class="primary" onclick="copyEmail()">📋 Copy Email</button>
@@ -908,7 +993,7 @@ html { scroll-behavior: smooth; }
 </div>
 
 <!-- PREVIEW -->
-<div class="card">
+<div class="card email-builder-preview">
   <h3>📧 Email Preview</h3>
   <div id="preview" class="preview"></div>
 </div>
